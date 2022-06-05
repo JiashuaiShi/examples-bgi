@@ -25,13 +25,13 @@ typedef unsigned long long uint64_t;
 
 // 统计字段定义
 typedef map<int, int> ChrDepthInfo;
-typedef map<string, ChrDepthInfo> WghDepthInfo;
+typedef map <string, ChrDepthInfo> WghDepthInfo;
 WghDepthInfo wghDepthInfo;
 
 // 字段空格拆分
-vector<std::string> split(std::string &str) {
+vector <std::string> split(std::string &str) {
     istringstream iss(str);
-    return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
+    return vector<string>(istream_iterator < string > {iss}, istream_iterator<string>());
 }
 
 int main(int argc, char *argv[]) {
@@ -116,17 +116,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-
-
-// M ：匹配
-// I : 插入
-// D : 删除
-// N : 跳过参考序列
-// S : 软跳过
-// H : 硬跳过
-// P : 跳过参考序列中间
-
-// 忽略：
-// = ：完全匹配
-// X : 序列错配
-// B : 跳过序列部分
