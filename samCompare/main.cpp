@@ -2,15 +2,11 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <iostream>
 #include <fstream>
-#include <vector>
 #include <iterator>
 #include <sstream>
-#include <time.h>
 #include <chrono>
 #include <unordered_map>
-#include <unordered_set>
 
 using namespace std;
 using namespace chrono;
@@ -54,6 +50,34 @@ std::chrono::duration<double> getElapsed(time_point<system_clock> start, time_po
     return elapsed;
 }
 
+constexpr const char *str_end(const char *str) {
+    return *str ? str_end(str + 1) : str;
+}
+
+constexpr bool str_slant(const char *str) {
+    return *str == '/' ? true : (*str ? str_slant(str + 1) : false);
+}
+
+constexpr const char *r_slant(const char *str) {
+    return *str == '/' ? (str + 1) : r_slant(str - 1);
+}
+
+constexpr const char *file_name(const char *str) {
+    return str_slant(str) ? r_slant(str_end(str)) : str;
+}
+
+// 截取输出文件名
+string getResultFileName(string s1, string s2) {
+    auto file1 = string(file_name(s1.c_str()));
+    auto file2 = string(file_name(s2.c_str()));
+
+    auto resultFileName =
+            "diff_" + file1.substr(0, file1.size() - 4) + "_" + file2.substr(0, file1.size() - 4) + ".txt";
+    cout << "result_file_name: " << resultFileName << endl;
+
+    return resultFileName;
+}
+
 int main(int argc, char *argv[]) {
     // 读取sam文件
     string samFileName1;
@@ -71,6 +95,8 @@ int main(int argc, char *argv[]) {
         cout << "请输入sam文件2路径, 并按Enter结束 " << endl;
         cin >> samFileName2;
     }
+
+    getResultFileName(samFileName1, samFileName2);
 
     cout << "开始比较sam文件：" << endl;
     cout << samFileName1 << endl;
@@ -142,12 +168,12 @@ int main(int argc, char *argv[]) {
     }
 
     // 统计结果写入文件
-    ofstream out("./result.txt");
+    string resFileName = getResultFileName(samFileName1, samFileName2);
+    ofstream out(resFileName);
     auto it = hashMap.begin();
     while (it != hashMap.end()) {
         auto chr = it->first; // QName
         auto line = get<2>(it->second); // 存在差异的行
-        cout << line << endl;
         out << line << endl;
         it++;
     }
@@ -156,7 +182,7 @@ int main(int argc, char *argv[]) {
     auto end = getEndTime();
     cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
 
-    cout << "处理结束，结果在 ./result.txt" << endl;
+    cout << "处理结束，结果在./" << resFileName << endl;
 
     return 0;
 }
