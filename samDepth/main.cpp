@@ -112,15 +112,13 @@ int main(int argc, char *argv[]) {
     // 统计结果写入文件
     ofstream out("./result.txt");
     auto it = wghDepthInfo.begin();
-    while (it != wghDepthInfo.end()) {
-        auto chr = it->first;
-        auto cur = it->second.begin();
+    while (it++ != wghDepthInfo.end()) {
+        auto chr = it->first; // key：染色体
+        auto arr = it->second; // value：统计值
 
-        for (auto i = 0; i < it->second.size(); i++) {
-            out << it->first << " " << i << " " << it->second[i] << endl;
-            cur++;
+        for (auto i = 0; i < arr.size(); i++) {
+            out << chr << " " << i << " " << arr[i] << endl;
         }
-        it++;
     }
 
     cout << "处理结束，结果在 ./result.txt" << endl;
