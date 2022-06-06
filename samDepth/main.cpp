@@ -20,8 +20,8 @@ typedef unsigned int uint32;
 typedef long long int64;
 typedef unsigned long long uint64;
 
-typedef long long int64_t;
-typedef unsigned long long uint64_t;
+typedef long long int64;
+typedef unsigned long long uint64;
 
 // 统计字段定义
 typedef map<int, int> ChrDepthInfo;
@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
                     break;
 
                 default:  // N S H P 跳过， 不是很能区分删除和跳过的区别
-                    pos += t;
+//                    pos += t;
             }
         }
     }
