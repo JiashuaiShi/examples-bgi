@@ -7,6 +7,7 @@
 #include <sstream>
 #include <chrono>
 #include <unordered_map>
+#include <stdio.h>
 
 using namespace std;
 using namespace chrono;
@@ -165,14 +166,15 @@ int main(int argc, char *argv[]) {
 
     // 统计结果写入文件
     string resFileName = getResultFileName(samFileName1, samFileName2);
-    ofstream out(resFileName);
+    FILE* fp = fopen(resFileName.c_str(), "w");
     auto it = hashMap.begin();
     while (it != hashMap.end()) {
         auto chr = it->first; // QName
         auto line = get<2>(it->second); // 存在差异的行
-        out << line << endl;
+        fwrite(line.c_str(), sizeof(char), line.size(), fp);
         it++;
     }
+    fclose(fp);
 
     // 结束计时
     auto end = getEndTime();
