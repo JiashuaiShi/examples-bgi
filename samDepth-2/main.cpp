@@ -10,6 +10,8 @@
 
 using namespace std;
 
+// 单线程版本sam文件碱基位点深度统计
+
 // 基本类型定义
 typedef char int8;
 typedef unsigned char uint8;
@@ -24,12 +26,11 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 // 统计字段定义
-typedef map<int, int> ChrDepthInfo;
-typedef map<string, ChrDepthInfo> WghDepthInfo;
+typedef map<string, vector<int>> WghDepthInfo;
 WghDepthInfo wghDepthInfo;
 
 // 字段空格拆分
-vector<std::string> split(std::string &str) {
+vector<string> split(string &str) {
     istringstream iss(str);
     return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
 }
@@ -55,8 +56,17 @@ int main(int argc, char *argv[]) {
     while (getline(inFile, line)) {
         auto field = split(line);
 
-        // 跳过头部注释信息
-        if (field[0][0] == '@') {
+        // 头部@SQ 生成统计直方图空间
+        if (field[0] == "@SQ") {
+            auto chr = field[1].substr(3);
+            auto len = stoi(field[2].substr(3));
+            vector<int> p = vector<int>(len);
+            wghDepthInfo[chr] = p;
+
+            continue;
+        }
+        // 头部其他字段，跳过
+        if(field[0][0] == '@') {
             continue;
         }
 
@@ -105,8 +115,9 @@ int main(int argc, char *argv[]) {
     while (it != wghDepthInfo.end()) {
         auto chr = it->first;
         auto cur = it->second.begin();
-        while (cur != it->second.end()) {
-            out << it->first << " " << cur->first << " " << cur->second << endl;
+
+        for (auto i = 0; i < it->second.size(); i++) {
+            out << it->first << " " << i << " " << it->second[i] << endl;
             cur++;
         }
         it++;
