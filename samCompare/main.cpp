@@ -148,17 +148,13 @@ int main(int argc, char *argv[]) {
 
         auto it = hashMap.find(qName);
 
+        // 异常情况
         if (it == hashMap.end()) {
-            cout << "未找到匹配key值" << endl;
             continue;
         }
 
         // 如相同，则移除
-        cout << it->first << endl;
-        cout << field[2] << " " << stoi(field[3]) << endl;
-        cout << get<0>(it->second) << " " << get<1>(it->second) << endl;
-
-        if (get<0>(it->second) == field[2] && get<1>(it->second) == stoi(field[3])) {
+         if (get<0>(it->second) == field[2] && get<1>(it->second) == stoi(field[3])) {
             hashMap.erase(it);
         } else {
             // 如不同，则填入
