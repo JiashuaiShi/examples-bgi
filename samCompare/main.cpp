@@ -51,6 +51,10 @@ string trimQname(string s) {
     return s.substr(0, s.size() - 2);
 }
 
+string trimLine(string qName, string line) {
+    return qName.append(line.substr(qName.size() + 2));
+}
+
 time_point<system_clock> getStartTime() {
     time_point<system_clock> start = system_clock::now();
     return start;
@@ -163,6 +167,7 @@ int main(int argc, char *argv[]) {
         // 对不标准qname进行转换
         if (isNeedTrim) {
             qName = trimQname(qName);
+            line1 =trimLine(qName, line1);
         }
 
         bool isMinus = (stoi(field[1])) & 16;
@@ -202,6 +207,7 @@ int main(int argc, char *argv[]) {
         // 对不标准qname进行转换
         if (isNeedTrim) {
             qName = trimQname(qName);
+            line2 =trimLine(qName, line2);
         }
 
         bool isMinus = (stoi(field[1])) & 16;
