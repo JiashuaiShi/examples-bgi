@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         cout << "请输入误差阈值, 并按Enter结束 " << endl;
         cin >> threshold;
 
-        cout << "请输入误差阈值, 并按Enter结束 " << endl;
+        cout << "是否输出文件( 0 or 1), 并按Enter结束 " << endl;
         cin >> isSaveResult;
     }
 
