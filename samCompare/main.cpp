@@ -8,6 +8,7 @@
 #include <chrono>
 #include <unordered_map>
 #include <stdio.h>
+#include <cmath>
 
 using namespace std;
 using namespace chrono;
@@ -28,12 +29,26 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 // 统计字段定义
-unordered_multimap<string, tuple<string, uint64, string>> hashMap;
+unordered_multimap<string, tuple<string, int, string>> hashMap;
 
 // 字段空格拆分
 vector<string> split(string &str) {
     istringstream iss(str);
     return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
+}
+
+// Qname是否标准
+bool isNameStd(string qName) {
+    int len = qName.size();
+    if (len < 3)
+        return true;
+
+    return qName.substr(len - 2) != "/1" || qName.substr(len - 2) != "/2";
+}
+
+// 去掉非标准qname的后缀
+string trimQname(string s) {
+    return s.substr(0, s.size() - 2);
 }
 
 time_point<system_clock> getStartTime() {
@@ -73,28 +88,43 @@ string getResultFileName(string s1, string s2) {
     auto file2 = string(file_name(s2.c_str()));
 
     auto resultFileName =
-            "diff_" + file1.substr(0, file1.size() - 4) + "_" + file2.substr(0, file1.size() - 4) + ".txt";
+            "diff__" + file1.substr(0, file1.size() - 4) + "__" + file2.substr(0, file2.size() - 4) + ".txt";
     cout << "result_file_name: " << resultFileName << endl;
 
     return resultFileName;
+}
+
+bool isSame(int v1, int v2, int threshold) {
+    return abs(v1 - v2) <= threshold;
 }
 
 int main(int argc, char *argv[]) {
     // 读取sam文件
     string samFileName1;
     string samFileName2;
+    int threshold = 0;  // 位置比较阈值
 
+    uint64 allLines = 0; // 全部行数
+    uint64 diffLines = 0; // 差异行数
+    uint64 sameLines = 0; // 相同行数
+
+    // 命令行参数
     if (argc == 3) {
         samFileName1 = argv[1];
         samFileName2 = argv[2];
-    }
-
-    if (argc != 3) {
+    } else if (argc == 4) {
+        samFileName1 = argv[1];
+        samFileName2 = argv[2];
+        threshold = stoi(argv[3]);
+    } else {
         cout << "请输入sam文件1路径, 并按Enter结束 " << endl;
         cin >> samFileName1;
 
         cout << "请输入sam文件2路径, 并按Enter结束 " << endl;
         cin >> samFileName2;
+
+        cout << "请输入误差阈值, 并按Enter结束 " << endl;
+        cin >> threshold;
     }
 
     getResultFileName(samFileName1, samFileName2);
@@ -110,6 +140,9 @@ int main(int argc, char *argv[]) {
 
     // 根据sam文件1建立hashMap
     string line1;
+    bool isTestFlag = true;
+    bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
+
     while (getline(inFile1, line1)) {
         auto field = split(line1);
 
@@ -120,6 +153,18 @@ int main(int argc, char *argv[]) {
 
         // 正负链取key值
         auto qName = field[0];
+
+        // 测试Qname是否标准，只做1次
+        if (isTestFlag) {
+            isNeedTrim = !isNameStd(qName);
+            isTestFlag = !isTestFlag;
+        }
+
+        // 对不标准qname进行转换
+        if (isNeedTrim) {
+            qName = trimQname(qName);
+        }
+
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
             qName = "-" + qName;
@@ -129,9 +174,14 @@ int main(int argc, char *argv[]) {
         hashMap.insert({qName, value});
     }
 
+    allLines = hashMap.size();
+
     // 读取sam文件2开始比对
     ifstream inFile2(samFileName2);
     string line2;
+    isTestFlag = true;
+    isNeedTrim = false;
+
     while (getline(inFile2, line2)) {
         auto field = split(line2);
 
@@ -142,6 +192,18 @@ int main(int argc, char *argv[]) {
 
         // 正负链取key值
         auto qName = field[0];
+
+        // 测试Qname是否标准，只做1次
+        if (isTestFlag) {
+            isNeedTrim = !isNameStd(qName);
+            isTestFlag = !isTestFlag;
+        }
+
+        // 对不标准qname进行转换
+        if (isNeedTrim) {
+            qName = trimQname(qName);
+        }
+
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
             qName = "-" + qName;
@@ -155,7 +217,7 @@ int main(int argc, char *argv[]) {
         }
 
         // 如相同，则移除
-         if (get<0>(it->second) == field[2] && get<1>(it->second) == stoi(field[3])) {
+        if (get<0>(it->second) == field[2] && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
             hashMap.erase(it);
         } else {
             // 如不同，则填入
@@ -164,13 +226,28 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    diffLines = hashMap.size();
+    sameLines = allLines - diffLines;
+
     // 统计结果写入文件
     string resFileName = getResultFileName(samFileName1, samFileName2);
-    FILE* fp = fopen(resFileName.c_str(), "w");
+    FILE *fp = fopen(resFileName.c_str(), "w");
     auto it = hashMap.begin();
+
+    char samePercent[10];
+    sprintf(samePercent, "%.2f", sameLines * 1.0 / allLines);
+
+    char diffPercent[10];
+    sprintf(diffPercent, "%.2f", diffLines * 1.0 / allLines);
+
+    string sum = "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
+    sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
+    sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
+    fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
+
     while (it != hashMap.end()) {
         auto chr = it->first; // QName
-        auto line = get<2>(it->second); // 存在差异的行
+        auto line = get<2>(it->second) + '\n'; // 存在差异的行
         fwrite(line.c_str(), sizeof(char), line.size(), fp);
         it++;
     }
@@ -178,8 +255,9 @@ int main(int argc, char *argv[]) {
 
     // 结束计时
     auto end = getEndTime();
-    cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
 
+    cout << sum;
+    cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
     cout << "处理结束，结果在./" << resFileName << endl;
 
     return 0;
