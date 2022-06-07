@@ -107,19 +107,33 @@ int main(int argc, char *argv[]) {
     string samFileName1;
     string samFileName2;
     int threshold = 0;  // 位置比较阈值
+    bool isSaveResult = true; // 是否保存结果文件
 
     uint64 allLines = 0; // 全部行数
     uint64 diffLines = 0; // 差异行数
     uint64 sameLines = 0; // 相同行数
 
     // 命令行参数
-    if (argc == 3) {
+    if (argc == 2 && argv[1] == "-h") {
+        // 使用提示：
+        cout << "使用方法：" << endl;
+        cout << "参数1： 基准Base.sam" << endl;
+        cout << "参数2： 验证query.sam" << endl;
+        cout << "参数3： pos校验阈值， 默认为0" << endl;
+        cout << "参数4： 是否输出文件 0 不保存结果 1 输出结果到文件, 默认为1" << endl;
+        cout << endl;
+    } else if (argc == 3) {
         samFileName1 = argv[1];
         samFileName2 = argv[2];
     } else if (argc == 4) {
         samFileName1 = argv[1];
         samFileName2 = argv[2];
         threshold = stoi(argv[3]);
+    } else if (argc == 5) {
+        samFileName1 = argv[1];
+        samFileName2 = argv[2];
+        threshold = stoi(argv[3]);
+        isSaveResult = (argv[4] == "1");
     } else {
         cout << "请输入sam文件1路径, 并按Enter结束 " << endl;
         cin >> samFileName1;
@@ -129,13 +143,18 @@ int main(int argc, char *argv[]) {
 
         cout << "请输入误差阈值, 并按Enter结束 " << endl;
         cin >> threshold;
+
+        cout << "请输入误差阈值, 并按Enter结束 " << endl;
+        cin >> isSaveResult;
     }
 
     getResultFileName(samFileName1, samFileName2);
 
     cout << "开始比较sam文件：" << endl;
-    cout << samFileName1 << endl;
-    cout << samFileName2 << endl;
+    cout << "  " << samFileName1 << endl;
+    cout << "  " << samFileName2 << endl;
+    cout << "误差阈值：" << threshold << endl;
+    cout << "是否保存文件： " << isSaveResult << endl;
 
     // 开始计时
     auto start = getStartTime();
@@ -216,10 +235,11 @@ int main(int argc, char *argv[]) {
         }
 
         auto it = hashMap.find(qName);
+        tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
 
-        // 异常情况
+        // key不命中，插入HashMap
         if (it == hashMap.end()) {
-            cout << "not found" << qName << endl;
+            hashMap.insert({qName, value});
             continue;
         }
 
@@ -228,7 +248,6 @@ int main(int argc, char *argv[]) {
             hashMap.erase(it);
         } else {
             // 如不同，则填入
-            tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
             hashMap.insert({qName, value});
         }
     }
@@ -238,7 +257,6 @@ int main(int argc, char *argv[]) {
 
     // 统计结果写入文件
     string resFileName = getResultFileName(samFileName1, samFileName2);
-    FILE *fp = fopen(resFileName.c_str(), "w");
     auto it = hashMap.begin();
 
     char samePercent[10];
@@ -250,15 +268,18 @@ int main(int argc, char *argv[]) {
     string sum = "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
     sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
     sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
-    fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
 
-    while (it != hashMap.end()) {
-        auto chr = it->first; // QName
-        auto line = get<2>(it->second) + '\n'; // 存在差异的行
-        fwrite(line.c_str(), sizeof(char), line.size(), fp);
-        it++;
+    if (isSaveResult) {
+        FILE *fp = fopen(resFileName.c_str(), "w");
+        fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
+        while (it != hashMap.end()) {
+            auto chr = it->first; // QName
+            auto line = get<2>(it->second) + '\n'; // 存在差异的行
+            fwrite(line.c_str(), sizeof(char), line.size(), fp);
+            it++;
+        }
+        fclose(fp);
     }
-    fclose(fp);
 
     // 结束计时
     auto end = getEndTime();
