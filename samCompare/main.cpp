@@ -37,13 +37,13 @@ vector<string> split(string &str) {
     return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
 }
 
-// Qname是否标准
-bool isNameStd(string qName) {
+// Qname是有后缀
+bool isQnameHasSuffix(string qName) {
     int len = qName.size();
     if (len < 3)
-        return true;
+        return false;
 
-    return qName.substr(len - 2) != "/1" || qName.substr(len - 2) != "/2";
+    return qName.substr(len - 2) == "/1" || qName.substr(len - 2) == "/2";
 }
 
 // 去掉非标准qname的后缀
@@ -160,14 +160,14 @@ int main(int argc, char *argv[]) {
 
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
-            isNeedTrim = !isNameStd(qName);
+            isNeedTrim = isQnameHasSuffix(qName);
             isTestFlag = !isTestFlag;
         }
 
         // 对不标准qname进行转换
         if (isNeedTrim) {
             qName = trimQname(qName);
-            line1 =trimLine(qName, line1);
+            line1 = trimLine(qName, line1);
         }
 
         bool isMinus = (stoi(field[1])) & 16;
@@ -200,14 +200,14 @@ int main(int argc, char *argv[]) {
 
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
-            isNeedTrim = !isNameStd(qName);
+            isNeedTrim = isQnameHasSuffix(qName);
             isTestFlag = !isTestFlag;
         }
 
         // 对不标准qname进行转换
         if (isNeedTrim) {
             qName = trimQname(qName);
-            line2 =trimLine(qName, line2);
+            line2 = trimLine(qName, line2);
         }
 
         bool isMinus = (stoi(field[1])) & 16;
