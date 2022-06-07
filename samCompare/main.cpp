@@ -241,10 +241,10 @@ int main(int argc, char *argv[]) {
     auto it = hashMap.begin();
 
     char samePercent[10];
-    sprintf(samePercent, "%.2f", sameLines * 1.0 / allLines);
+    sprintf(samePercent, "%.2f", sameLines * 100.0 / allLines);
 
     char diffPercent[10];
-    sprintf(diffPercent, "%.2f", diffLines * 1.0 / allLines);
+    sprintf(diffPercent, "%.2f", diffLines * 100.0 / allLines);
 
     string sum = "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
     sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
