@@ -114,15 +114,21 @@ int main(int argc, char *argv[]) {
     uint64 sameLines = 0; // 相同行数
 
     // 命令行参数
-    if (argc == 2 && argv[1] == "h") {
+    if (argc == 2) {
         // 使用提示：
-        cout << "使用方法：" << endl;
-        cout << "参数1： 基准Base.sam" << endl;
-        cout << "参数2： 验证query.sam" << endl;
-        cout << "参数3： pos校验阈值， 默认为0" << endl;
-        cout << "参数4： 是否输出文件 0 不保存结果 1 输出结果到文件, 默认为1" << endl;
-        cout << endl;
-    } else if (argc == 3) {
+        string v = argv[1];
+        if (v == "-h") {
+            cout << "使用方法：" << endl;
+            cout << "参数1： 基准Base.sam" << endl;
+            cout << "参数2： 验证query.sam" << endl;
+            cout << "参数3： pos校验阈值， 默认为0" << endl;
+            cout << "参数4： 是否输出文件 0 不保存结果 1 输出结果到文件, 默认为1" << endl;
+            cout << endl;
+            return 0;
+        }
+    }
+
+    if (argc == 3) {
         samFileName1 = argv[1];
         samFileName2 = argv[2];
     } else if (argc == 4) {
