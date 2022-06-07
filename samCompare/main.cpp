@@ -219,6 +219,7 @@ int main(int argc, char *argv[]) {
 
         // 异常情况
         if (it == hashMap.end()) {
+            cout << "not found" << qName << endl;
             continue;
         }
 
