@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     uint64 sameLines = 0; // 相同行数
 
     // 命令行参数
-    if (argc == 2 && argv[1] == "-h") {
+    if (argc == 2 && argv[1] == "h") {
         // 使用提示：
         cout << "使用方法：" << endl;
         cout << "参数1： 基准Base.sam" << endl;
