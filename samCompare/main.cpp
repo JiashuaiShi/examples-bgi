@@ -279,6 +279,7 @@ int main(int argc, char *argv[]) {
             it++;
         }
         fclose(fp);
+        cout << "处理结束，结果在./" << resFileName << endl;
     }
 
     // 结束计时
@@ -286,7 +287,6 @@ int main(int argc, char *argv[]) {
 
     cout << sum;
     cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
-    cout << "处理结束，结果在./" << resFileName << endl;
 
     return 0;
 }
