@@ -167,6 +167,8 @@ int main(int argc, char *argv[]) {
 
     string query;
 
+    cout << "hashMap建立结束，可以开始查询" << endl;
+
     while (cin >> query) {
         cout << "== file1 ==" << endl;
 
