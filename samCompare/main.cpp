@@ -246,15 +246,15 @@ int main(int argc, char *argv[]) {
 
         auto it = hashMap.find(qName);
         tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
-
-        bool unMatch1 = (stoi(field[1])) & 0x40;  // read1没有匹配上
-        bool unMatch2 = (stoi(field[1])) & 0x80;  // read2没有匹配上
-
-        // 规则1： 没有匹配上的记录，直接判断不匹配
-        if (unMatch1 || unMatch2) {
-            hashMap.insert({qName, value});
-            continue;
-        }
+//
+//        bool unMatch1 = (stoi(field[1])) & 0x40;  // read1没有匹配上
+//        bool unMatch2 = (stoi(field[1])) & 0x80;  // read2没有匹配上
+//
+//        // 规则1： 没有匹配上的记录，直接判断不匹配
+//        if (unMatch1 || unMatch2) {
+//            hashMap.insert({qName, value});
+//            continue;
+//        }
 
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
@@ -263,8 +263,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
+        int flag = stoi(field[1]);
+
         // 规则2： 如相同，则移除
-        if (get<0>(it->second) == field[2] && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
+        if (get<0>(it->second) == field[2]
+            && isSame(get<1>(it->second), stoi(field[3]), threshold)
+            && flag != 4) {
             hashMap.erase(it);
         } else {
             // 如不同，则填入
@@ -278,7 +282,6 @@ int main(int argc, char *argv[]) {
     sameLines = allLines - diffLines;
 
     // 统计结果写入文件
-    string resFileName = getResultFileName(samFileName1, samFileName2);
     auto it = hashMap.begin();
 
     char samePercent[10];
@@ -291,6 +294,7 @@ int main(int argc, char *argv[]) {
     sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
     sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
 
+    string resFileName = "./" + getResultFileName(samFileName1, samFileName2);
     if (isSaveResult) {
         FILE *fp = fopen(resFileName.c_str(), "w");
         fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
