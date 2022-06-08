@@ -29,12 +29,12 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 // 统计字段定义
-unordered_multimap<string, tuple<string, int, string>> hashMap;
+unordered_multimap <string, tuple<string, int, string>> hashMap;
 
 // 字段空格拆分
-vector<string> split(string &str) {
+vector <string> split(string &str) {
     istringstream iss(str);
-    return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
+    return vector<string>(istream_iterator < string > {iss}, istream_iterator<string>());
 }
 
 // Qname是有后缀
@@ -51,25 +51,27 @@ string trimQname(string s) {
     return s.substr(0, s.size() - 2);
 }
 
+// 程序时间统计
 string trimLine(string qName, string line) {
     return qName.append(line.substr(qName.size() + 2));
 }
 
-time_point<system_clock> getStartTime() {
-    time_point<system_clock> start = system_clock::now();
+time_point <system_clock> getStartTime() {
+    time_point <system_clock> start = system_clock::now();
     return start;
 }
 
-time_point<system_clock> getEndTime() {
-    time_point<system_clock> end = system_clock::now();
+time_point <system_clock> getEndTime() {
+    time_point <system_clock> end = system_clock::now();
     return end;
 }
 
-std::chrono::duration<double> getElapsed(time_point<system_clock> start, time_point<system_clock> end) {
+std::chrono::duration<double> getElapsed(time_point <system_clock> start, time_point <system_clock> end) {
     std::chrono::duration<double> elapsed = end - start;
     return elapsed;
 }
 
+// 辅助函数，文件命名
 constexpr const char *str_end(const char *str) {
     return *str ? str_end(str + 1) : str;
 }
@@ -91,13 +93,18 @@ string getResultFileName(string s1, string s2) {
     auto file1 = string(file_name(s1.c_str()));
     auto file2 = string(file_name(s2.c_str()));
 
-    auto resultFileName =
-            "diff__" + file1.substr(0, file1.size() - 4) + "__" + file2.substr(0, file2.size() - 4) + ".txt";
-    cout << "result_file_name: " << resultFileName << endl;
+    string resultFileName = "diffResult.txt";
+
+    if (isAutoRenameDiffName) {
+        resultFileName =
+                "diff__" + file1.substr(0, file1.size() - 4) + "__" + file2.substr(0, file2.size() - 4) + ".txt";
+        cout << "result_file_name: " << resultFileName << endl;
+    }
 
     return resultFileName;
 }
 
+// pos阈值比较
 bool isSame(int v1, int v2, int threshold) {
     return abs(v1 - v2) <= threshold;
 }
@@ -108,6 +115,7 @@ int main(int argc, char *argv[]) {
     string samFileName2;
     int threshold = 0;  // 位置比较阈值
     bool isSaveResult = true; // 是否保存结果文件
+    bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 
     uint64 allLines = 0; // 全部行数
     uint64 diffLines = 0; // 差异行数
@@ -213,7 +221,7 @@ int main(int argc, char *argv[]) {
     isNeedTrim = false;
 
     // hash没有命中的文件保存
-    ofstream hashFile("./hashFile.txt");
+    ofstream hashFile("./diffMisHashHit.txt");
 
     while (getline(inFile2, line2)) {
         auto field = split(line2);
@@ -245,30 +253,32 @@ int main(int argc, char *argv[]) {
         }
 
         auto it = hashMap.find(qName);
-        tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
-//
-//        bool unMatch1 = (stoi(field[1])) & 0x40;  // read1没有匹配上
-//        bool unMatch2 = (stoi(field[1])) & 0x80;  // read2没有匹配上
-//
-//        // 规则1： 没有匹配上的记录，直接判断不匹配
-//        if (unMatch1 || unMatch2) {
-//            hashMap.insert({qName, value});
-//            continue;
-//        }
+        tuple <string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
+
+        // 在此处可以根据flag，增加比对规则
+        if (false) {
+            int flag = stoi(field[1]);
+
+            bool unMatch1 = flag & 0x40;  // read1匹配上
+            bool unMatch2 = flag & 0x80;  // read2匹配上
+
+            // 增加规则1： 没有匹配上的记录，直接判断不匹配
+            if (unMatch1 || unMatch2) {
+                hashMap.insert({qName, value});
+                continue;
+            }
+        }
 
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
+            // 单独保存Hash未命中记录
             hashFile << line2 << endl;
-//            hashMap.insert({qName, value});
             continue;
         }
 
-        int flag = stoi(field[1]);
-
-        // 规则2： 如相同，则移除
+        // 规则： 如相同，则移除
         if (get<0>(it->second) == field[2]
-            && isSame(get<1>(it->second), stoi(field[3]), threshold)
-            && flag != 4) {
+            && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
             hashMap.erase(it);
         } else {
             // 如不同，则填入
@@ -278,11 +288,9 @@ int main(int argc, char *argv[]) {
 
     hashFile.close();
 
+    // 比对结果统计
     diffLines = hashMap.size();
     sameLines = allLines - diffLines;
-
-    // 统计结果写入文件
-    auto it = hashMap.begin();
 
     char samePercent[10];
     sprintf(samePercent, "%.2f", sameLines * 100.0 / allLines);
@@ -294,10 +302,12 @@ int main(int argc, char *argv[]) {
     sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
     sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
 
-    string resFileName = "./" + getResultFileName(samFileName1, samFileName2);
+    // 统计结果写入文件
     if (isSaveResult) {
+        string resFileName = "./" + getResultFileName(samFileName1, samFileName2);
         FILE *fp = fopen(resFileName.c_str(), "w");
         fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
+        auto it = hashMap.begin();
         while (it != hashMap.end()) {
             auto chr = it->first; // QName
             auto line = get<2>(it->second) + '\n'; // 存在差异的行
