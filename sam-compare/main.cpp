@@ -30,6 +30,7 @@ typedef unsigned long long uint64;
 
 // 统计字段定义
 unordered_multimap <string, tuple<string, int, string>> hashMap;
+bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 
 // 字段空格拆分
 vector <string> split(string &str) {
@@ -115,7 +116,6 @@ int main(int argc, char *argv[]) {
     string samFileName2;
     int threshold = 0;  // 位置比较阈值
     bool isSaveResult = true; // 是否保存结果文件
-    bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 
     uint64 allLines = 0; // 全部行数
     uint64 diffLines = 0; // 差异行数
