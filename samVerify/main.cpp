@@ -28,9 +28,6 @@ typedef unsigned long long uint64;
 typedef long long int64;
 typedef unsigned long long uint64;
 
-// 统计字段定义
-unordered_multimap<string, string> hashMap;  // key - line
-
 // 字段空格拆分
 vector<string> split(string &str) {
     istringstream iss(str);
@@ -104,6 +101,8 @@ bool isSame(int v1, int v2, int threshold) {
 
 unordered_multimap<string, string> getHashMap(string fileName) {
     ifstream inFile(fileName);
+    // 统计字段定义
+    unordered_multimap<string, string> hashMap;  // key - line
     string line;
 
     bool isTestFlag = true;
@@ -136,8 +135,6 @@ unordered_multimap<string, string> getHashMap(string fileName) {
 //        if (isMinus) {
 //            qName = "-" + qName;
 //        }
-
-
 
         // 同条Qname的多条正链或者负链，都会添加到hashMap
         auto it = hashMap.find(qName);
@@ -172,13 +169,13 @@ int main(int argc, char *argv[]) {
     while (cin >> query) {
         cout << "== file1 ==" << endl;
 
-        auto itr = hashMap.equal_range(query);
+        auto itr = hashMap1.equal_range(query);
         for (auto p = itr.first; p != itr.second; p++) {
             cout << p->second << endl;
         }
 
         cout << endl << "== file2 ==" << endl;
-        itr = hashMap.equal_range(query);
+        itr = hashMap2.equal_range(query);
         for (auto p = itr.first; p != itr.second; p++) {
             cout << p->second << endl;
         }
