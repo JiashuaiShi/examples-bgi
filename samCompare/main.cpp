@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
-            hashFile <<  get<2>(it->second) << endl;
+            hashFile << line2 << endl;
 //            hashMap.insert({qName, value});
             continue;
         }
