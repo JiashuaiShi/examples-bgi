@@ -212,6 +212,9 @@ int main(int argc, char *argv[]) {
     isTestFlag = true;
     isNeedTrim = false;
 
+    // hash没有命中的文件保存
+    ofstream hashFile("./hashFile.txt");
+
     while (getline(inFile2, line2)) {
         auto field = split(line2);
 
@@ -245,6 +248,7 @@ int main(int argc, char *argv[]) {
 
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
+            hashFile <<  get<2>(it->second) << endl;
 //            hashMap.insert({qName, value});
             continue;
         }
@@ -257,6 +261,8 @@ int main(int argc, char *argv[]) {
             hashMap.insert({qName, value});
         }
     }
+
+    hashFile.close();
 
     diffLines = hashMap.size();
     sameLines = allLines - diffLines;
