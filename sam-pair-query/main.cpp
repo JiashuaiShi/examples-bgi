@@ -131,11 +131,6 @@ unordered_multimap<string, string> getHashMap(string fileName) {
             line = trimLine(qName, line);
         }
 
-//        bool isMinus = (stoi(field[1])) & 16;
-//        if (isMinus) {
-//            qName = "-" + qName;
-//        }
-
         // 同条Qname的多条正链或者负链，都会添加到hashMap
         auto it = hashMap.find(qName);
         pair<string, string> value = make_pair(qName, line);
