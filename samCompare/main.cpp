@@ -238,6 +238,7 @@ int main(int argc, char *argv[]) {
             line2 = trimLine(qName, line2);
         }
 
+        // 通过flag判断正负链会有异常情况，比如两条记录都是16或者两条记录都是0
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
             qName = "-" + qName;
@@ -246,6 +247,15 @@ int main(int argc, char *argv[]) {
         auto it = hashMap.find(qName);
         tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
 
+        bool unMatch1 = (stoi(field[1])) & 0x40;  // read1没有匹配上
+        bool unMatch2 = (stoi(field[1])) & 0x80;  // read2没有匹配上
+
+        // 规则1： 没有匹配上的记录，直接判断不匹配
+        if (unMatch1 || unMatch2) {
+            hashMap.insert({qName, value});
+            continue;
+        }
+
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
             hashFile << line2 << endl;
@@ -253,7 +263,7 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        // 如相同，则移除
+        // 规则2： 如相同，则移除
         if (get<0>(it->second) == field[2] && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
             hashMap.erase(it);
         } else {
