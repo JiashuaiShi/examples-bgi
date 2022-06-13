@@ -1,45 +1,4 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <map>
-#include <fstream>
-#include <iterator>
-#include <sstream>
-#include <chrono>
-#include <unordered_map>
-#include <cstdio>
-#include <cmath>
-
-using namespace std;
-using namespace chrono;
-
-// 基本类型定义
-typedef char int8;
-typedef unsigned char uint8;
-
-typedef int int32;
-typedef unsigned int uint32;
-
-typedef long long int64;
-typedef unsigned long long uint64;
-
-typedef long long int64;
-typedef unsigned long long uint64;
-
-// 配置开关
-bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
-bool isSavaHashUnMatchFile = false; // 是否保存Hash未命中记录
-bool isOpenEnhanceRules = false; // 是否启用增强比较规则
-
-// 命令行读取参数
-string gSamFileName1;
-string gSamFileName2;
-int gThreshold = 0;  // 位置比较阈值
-bool gIsSaveResult = true; // 是否保存结果文件
-
-// 全局变量
-unordered_multimap<string, tuple<string, int, string>> gHashMap;
-uint64 allLines = 0; // HashMap全部行数
+#include "global.hpp"
 
 // 字段空格拆分
 vector<string> split(string &str) {
@@ -48,8 +7,8 @@ vector<string> split(string &str) {
 }
 
 // Qname是有后缀
-bool isQnameHasSuffix(string qName) {
-    int len = qName.size();
+bool isQnameHasSuffix(const string& qName) {
+    auto len = qName.size();
     if (len < 3)
         return false;
 
@@ -62,7 +21,7 @@ string trimQname(string s) {
 }
 
 // 程序时间统计
-string trimLine(string qName, string line) {
+string trimLine(string qName, const string& line) {
     return qName.append(line.substr(qName.size() + 2));
 }
 
@@ -117,45 +76,6 @@ string getResultFileName(string s1, string s2) {
 // pos阈值比较
 bool isSame(int v1, int v2, int threshold) {
     return abs(v1 - v2) <= threshold;
-}
-
-// thread-buildMap
-void buildMap(ifstream &inFile1) {
-    bool isTestFlag = true;
-    bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
-    string line1;
-
-    while (getline(inFile1, line1)) {
-        auto field = split(line1);
-
-        // 头部其他字段，跳过
-        if (field[0][0] == '@') {
-            continue;
-        }
-
-        // 正负链取key值
-        auto qName = field[0];
-
-        // 测试Qname是否标准，只做1次
-        if (isTestFlag) {
-            isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = false;
-        }
-
-        // 对不标准qname进行转换
-        if (isNeedTrim) {
-            qName = trimQname(qName);
-            line1 = trimLine(qName, line1);
-        }
-
-        bool isMinus = (stoi(field[1])) & 16;
-        if (isMinus) {
-            qName = qName.append("-");
-        }
-
-        tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line1);
-        gHashMap.insert({qName, value});
-    }
 }
 
 // thread-compare
@@ -286,6 +206,8 @@ void getInput(int argc, char *argv[]) {
 }
 
 void getResult() {
+    cout << "getResult start" << endl;
+
     uint64 diffLines = 0; // 差异行数
     uint64 sameLines = 0; // 相同行数
     diffLines = gHashMap.size();
@@ -318,5 +240,7 @@ void getResult() {
         fclose(fp);
         cout << "处理结束，结果在./" << resFileName << endl;
     }
+
+    cout << "getResult end" << endl;
 }
 

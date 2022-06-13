@@ -1,4 +1,5 @@
-#include "lib.hpp"
+#include "compare.hpp"
+#include "buildMap.hpp"
 
 int main(int argc, char *argv[]) {
     // 命令行参数
