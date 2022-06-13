@@ -111,7 +111,7 @@ bool isSame(int v1, int v2, int threshold) {
 }
 
 // thread-buildMap
-void threadBuildMap(ifstream &inFile1) {
+void buildMap(ifstream &inFile1) {
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
     string line1;
@@ -150,7 +150,7 @@ void threadBuildMap(ifstream &inFile1) {
 }
 
 // thread-compare
-void threadCompare(ifstream &inFile2, int threshold) {
+void compare(ifstream &inFile2, int threshold) {
     string line2;
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
@@ -287,7 +287,7 @@ int main(int argc, char *argv[]) {
     auto start = getStartTime();
 
     ifstream inFile1(samFileName1);
-    threadBuildMap(inFile1);
+    buildMap(inFile1);
 
     // 根据sam文件1建立hashMap
     string line1;
@@ -296,7 +296,7 @@ int main(int argc, char *argv[]) {
 
     // 读取sam文件2开始比对
     ifstream inFile2(samFileName2);
-    threadCompare(inFile2, threshold);
+    compare(inFile2, threshold);
 
     // 比对结果统计
     diffLines = hashMap.size();
