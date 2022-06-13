@@ -154,7 +154,7 @@ void compare(ifstream &inFile2, int threshold) {
     string line2;
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
-    ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
+//    ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
 
     while (getline(inFile2, line2)) {
         auto field = split(line2);
@@ -170,7 +170,7 @@ void compare(ifstream &inFile2, int threshold) {
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
             isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
+            isTestFlag = false;
         }
 
         // 对不标准qname进行转换
@@ -218,7 +218,7 @@ void compare(ifstream &inFile2, int threshold) {
             hashMap.insert({qName, value});
         }
 
-        hashFile.close();
+//        hashFile.close();
     }
 
 }
