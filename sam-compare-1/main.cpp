@@ -1,8 +1,5 @@
 #include "lib.hpp"
 
-
-
-
 int main(int argc, char *argv[]) {
     // 命令行参数
     getInput(argc, argv);

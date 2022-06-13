@@ -3,4 +3,4 @@ project(samCompare)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(samCompare main.cpp lib.hpp)
+add_executable(samCompare main.cpp lib.hpp queue.hpp)

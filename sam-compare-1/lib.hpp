@@ -7,7 +7,7 @@
 #include <sstream>
 #include <chrono>
 #include <unordered_map>
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 using namespace std;
@@ -29,6 +29,7 @@ typedef unsigned long long uint64;
 // 配置开关
 bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 bool isSavaHashUnMatchFile = false; // 是否保存Hash未命中记录
+bool isOpenEnhanceRules = false; // 是否启用增强比较规则
 
 // 命令行读取参数
 string gSamFileName1;
@@ -138,7 +139,7 @@ void buildMap(ifstream &inFile1) {
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
             isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
+            isTestFlag = false;
         }
 
         // 对不标准qname进行转换
@@ -178,7 +179,7 @@ void compare(ifstream &inFile2, int threshold) {
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
             isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
+            isTestFlag = false;
         }
 
         // 对不标准qname进行转换
@@ -190,14 +191,14 @@ void compare(ifstream &inFile2, int threshold) {
         // 通过flag判断正负链会有异常情况，比如两条记录都是16或者两条记录都是0
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
-            qName = "-" + qName;
+            qName = qName.append("-");
         }
 
         auto it = gHashMap.find(qName);
         tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
 
         // 在此处可以根据flag，增加比对规则
-        if (false) {
+        if (isOpenEnhanceRules) {
             int flag = stoi(field[1]);
 
             bool unMatch1 = flag & 0x40;  // read1匹配上
