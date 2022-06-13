@@ -110,6 +110,116 @@ bool isSame(int v1, int v2, int threshold) {
     return abs(v1 - v2) <= threshold;
 }
 
+// thread-buildMap
+void threadBuildMap(ifstream &inFile1, string &line1) {
+    bool isTestFlag = true;
+    bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
+
+    while (getline(inFile1, line1)) {
+        auto field = split(line1);
+
+        // 头部其他字段，跳过
+        if (field[0][0] == '@') {
+            continue;
+        }
+
+        // 正负链取key值
+        auto qName = field[0];
+
+        // 测试Qname是否标准，只做1次
+        if (isTestFlag) {
+            isNeedTrim = isQnameHasSuffix(qName);
+            isTestFlag = !isTestFlag;
+        }
+
+        // 对不标准qname进行转换
+        if (isNeedTrim) {
+            qName = trimQname(qName);
+            line1 = trimLine(qName, line1);
+        }
+
+        bool isMinus = (stoi(field[1])) & 16;
+        if (isMinus) {
+            qName = "-" + qName;
+        }
+
+        tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line1);
+        hashMap.insert({qName, value});
+    }
+}
+
+// thread-compare
+void threadCompare(ifstream &inFile2, int threshold) {
+    string line2;
+
+    bool isTestFlag = true;
+    bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
+
+    while (getline(inFile2, line2)) {
+        auto field = split(line2);
+
+        // 头部其他字段，跳过
+        if (field[0][0] == '@') {
+            continue;
+        }
+
+        // 正负链取key值
+        auto qName = field[0];
+
+        // 测试Qname是否标准，只做1次
+        if (isTestFlag) {
+            isNeedTrim = isQnameHasSuffix(qName);
+            isTestFlag = !isTestFlag;
+        }
+
+        // 对不标准qname进行转换
+        if (isNeedTrim) {
+            qName = trimQname(qName);
+            line2 = trimLine(qName, line2);
+        }
+
+        // 通过flag判断正负链会有异常情况，比如两条记录都是16或者两条记录都是0
+        bool isMinus = (stoi(field[1])) & 16;
+        if (isMinus) {
+            qName = "-" + qName;
+        }
+
+        auto it = hashMap.find(qName);
+        tuple <string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
+
+        // 在此处可以根据flag，增加比对规则
+        if (false) {
+            int flag = stoi(field[1]);
+
+            bool unMatch1 = flag & 0x40;  // read1匹配上
+            bool unMatch2 = flag & 0x80;  // read2匹配上
+
+            // 增加规则1： 没有匹配上的记录，直接判断不匹配
+            if (unMatch1 || unMatch2) {
+                hashMap.insert({qName, value});
+                continue;
+            }
+        }
+
+        // key不命中，插入HashMap
+        if (it == hashMap.end()) {
+            // 单独保存Hash未命中记录
+//            hashFile << line2 << endl;
+            continue;
+        }
+
+        // 规则： 如相同，则移除
+        if (get<0>(it->second) == field[2]
+            && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
+            hashMap.erase(it);
+        } else {
+            // 如不同，则填入
+            hashMap.insert({qName, value});
+        }
+    }
+
+}
+
 int main(int argc, char *argv[]) {
     // 读取sam文件
     string samFileName1;
@@ -177,114 +287,16 @@ int main(int argc, char *argv[]) {
 
     // 根据sam文件1建立hashMap
     string line1;
-    bool isTestFlag = true;
-    bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
-
-    while (getline(inFile1, line1)) {
-        auto field = split(line1);
-
-        // 头部其他字段，跳过
-        if (field[0][0] == '@') {
-            continue;
-        }
-
-        // 正负链取key值
-        auto qName = field[0];
-
-        // 测试Qname是否标准，只做1次
-        if (isTestFlag) {
-            isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
-        }
-
-        // 对不标准qname进行转换
-        if (isNeedTrim) {
-            qName = trimQname(qName);
-            line1 = trimLine(qName, line1);
-        }
-
-        bool isMinus = (stoi(field[1])) & 16;
-        if (isMinus) {
-            qName = "-" + qName;
-        }
-
-        tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line1);
-        hashMap.insert({qName, value});
-    }
 
     allLines = hashMap.size();
 
     // 读取sam文件2开始比对
     ifstream inFile2(samFileName2);
-    string line2;
-    isTestFlag = true;
-    isNeedTrim = false;
+    threadCompare(samFileName2, threshold);
 
     // hash没有命中的文件保存
     ofstream hashFile("./diffMisHashHit.txt");
 
-    while (getline(inFile2, line2)) {
-        auto field = split(line2);
-
-        // 头部其他字段，跳过
-        if (field[0][0] == '@') {
-            continue;
-        }
-
-        // 正负链取key值
-        auto qName = field[0];
-
-        // 测试Qname是否标准，只做1次
-        if (isTestFlag) {
-            isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
-        }
-
-        // 对不标准qname进行转换
-        if (isNeedTrim) {
-            qName = trimQname(qName);
-            line2 = trimLine(qName, line2);
-        }
-
-        // 通过flag判断正负链会有异常情况，比如两条记录都是16或者两条记录都是0
-        bool isMinus = (stoi(field[1])) & 16;
-        if (isMinus) {
-            qName = "-" + qName;
-        }
-
-        auto it = hashMap.find(qName);
-        tuple <string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
-
-        // 在此处可以根据flag，增加比对规则
-        if (false) {
-            int flag = stoi(field[1]);
-
-            bool unMatch1 = flag & 0x40;  // read1匹配上
-            bool unMatch2 = flag & 0x80;  // read2匹配上
-
-            // 增加规则1： 没有匹配上的记录，直接判断不匹配
-            if (unMatch1 || unMatch2) {
-                hashMap.insert({qName, value});
-                continue;
-            }
-        }
-
-        // key不命中，插入HashMap
-        if (it == hashMap.end()) {
-            // 单独保存Hash未命中记录
-            hashFile << line2 << endl;
-            continue;
-        }
-
-        // 规则： 如相同，则移除
-        if (get<0>(it->second) == field[2]
-            && isSame(get<1>(it->second), stoi(field[3]), threshold)) {
-            hashMap.erase(it);
-        } else {
-            // 如不同，则填入
-            hashMap.insert({qName, value});
-        }
-    }
 
     hashFile.close();
 
