@@ -29,13 +29,13 @@ typedef long long int64;
 typedef unsigned long long uint64;
 
 // 统计字段定义
-unordered_multimap <string, tuple<string, int, string>> hashMap;
+unordered_multimap<string, tuple<string, int, string>> hashMap;
 bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 
 // 字段空格拆分
-vector <string> split(string &str) {
+vector<string> split(string &str) {
     istringstream iss(str);
-    return vector<string>(istream_iterator < string > {iss}, istream_iterator<string>());
+    return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
 }
 
 // Qname是有后缀
@@ -57,17 +57,17 @@ string trimLine(string qName, string line) {
     return qName.append(line.substr(qName.size() + 2));
 }
 
-time_point <system_clock> getStartTime() {
-    time_point <system_clock> start = system_clock::now();
+time_point<system_clock> getStartTime() {
+    time_point<system_clock> start = system_clock::now();
     return start;
 }
 
-time_point <system_clock> getEndTime() {
-    time_point <system_clock> end = system_clock::now();
+time_point<system_clock> getEndTime() {
+    time_point<system_clock> end = system_clock::now();
     return end;
 }
 
-std::chrono::duration<double> getElapsed(time_point <system_clock> start, time_point <system_clock> end) {
+std::chrono::duration<double> getElapsed(time_point<system_clock> start, time_point<system_clock> end) {
     std::chrono::duration<double> elapsed = end - start;
     return elapsed;
 }
@@ -111,9 +111,10 @@ bool isSame(int v1, int v2, int threshold) {
 }
 
 // thread-buildMap
-void threadBuildMap(ifstream &inFile1, string &line1) {
+void threadBuildMap(ifstream &inFile1) {
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
+    string line1;
 
     while (getline(inFile1, line1)) {
         auto field = split(line1);
@@ -140,7 +141,7 @@ void threadBuildMap(ifstream &inFile1, string &line1) {
 
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
-            qName = "-" + qName;
+            qName = qName.append("-");
         }
 
         tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line1);
@@ -151,9 +152,9 @@ void threadBuildMap(ifstream &inFile1, string &line1) {
 // thread-compare
 void threadCompare(ifstream &inFile2, int threshold) {
     string line2;
-
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
+    ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
 
     while (getline(inFile2, line2)) {
         auto field = split(line2);
@@ -185,7 +186,7 @@ void threadCompare(ifstream &inFile2, int threshold) {
         }
 
         auto it = hashMap.find(qName);
-        tuple <string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
+        tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
 
         // 在此处可以根据flag，增加比对规则
         if (false) {
@@ -216,6 +217,8 @@ void threadCompare(ifstream &inFile2, int threshold) {
             // 如不同，则填入
             hashMap.insert({qName, value});
         }
+
+        hashFile.close();
     }
 
 }
@@ -284,6 +287,7 @@ int main(int argc, char *argv[]) {
     auto start = getStartTime();
 
     ifstream inFile1(samFileName1);
+    threadBuildMap(inFile1);
 
     // 根据sam文件1建立hashMap
     string line1;
@@ -292,13 +296,7 @@ int main(int argc, char *argv[]) {
 
     // 读取sam文件2开始比对
     ifstream inFile2(samFileName2);
-    threadCompare(samFileName2, threshold);
-
-    // hash没有命中的文件保存
-    ofstream hashFile("./diffMisHashHit.txt");
-
-
-    hashFile.close();
+    threadCompare(inFile2, threshold);
 
     // 比对结果统计
     diffLines = hashMap.size();
