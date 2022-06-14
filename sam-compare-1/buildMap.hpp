@@ -8,14 +8,6 @@ void buildMap(ifstream &inFile) {
 
     MyQueue mq;
 
-
-    // ===
-    string line;
-    while (getline(inFile, line)) {
-        cout << line << endl;
-    }
-    // ===
-
     auto TaskReadLine = [&]() {
         cout << "TaskReadLine start" << endl;
 
