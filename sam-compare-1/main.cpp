@@ -168,6 +168,7 @@ void buildMap(const string &filePath) {
     start = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (start == MAP_FAILED) {      /* 判断是否映射成功 */
         cout << "mmap failed!!" << endl;
+        exit(-1);
         return;
     }
 
@@ -180,13 +181,12 @@ void buildMap(const string &filePath) {
     close(fd);
 
     // 按行分割
-
     char *str = buffer;
-    char *line1;
+    char *line;
     char *rest = str;
 
-    while ((line1 = strtok_r(rest, "\n", &rest))) {
-        auto field = split_t(line1);
+    while ((line = strtok_r(rest, "\n", &rest))) {
+        auto field = split_t(line);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {
@@ -206,7 +206,7 @@ void buildMap(const string &filePath) {
         string line_s;
         if (isNeedTrim) {
             qName = trimQname(qName);
-            line_s = trimLine(qName, string(line1));
+            line_s = trimLine(qName, string(line));
         }
 
         if (field.size() < 2) {
@@ -224,14 +224,40 @@ void buildMap(const string &filePath) {
 }
 
 // thread-compare
-void compare(ifstream &inFile2, int threshold) {
+void compare(const string &filePath, int threshold) {
     string line2;
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
     ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
 
-    while (getline(inFile2, line2)) {
-        auto field = split_t(line2);
+    // 第一步：建立映射
+    int fd;
+    void *start;
+    struct stat sb{};
+    fd = open(filePath.c_str(), O_RDONLY);
+    fstat(fd, &sb);  /* 取得文件大小 */
+    start = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (start == MAP_FAILED) {      /* 判断是否映射成功 */
+        cout << "mmap failed!!" << endl;
+        exit(-1);
+        return;
+    }
+
+    // 第二步：拷贝内存
+    char *buffer = new char[sb.st_size];
+    memcpy(buffer, start, sb.st_size);
+
+    // 第三步: 解除映射
+    munmap(start, sb.st_size);
+    close(fd);
+
+    // 按行分割
+    char *str = buffer;
+    char *line;
+    char *rest = str;
+
+    while ((line = strtok_r(rest, "\n", &rest))) {
+        auto field = split_t(line);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {
@@ -248,19 +274,20 @@ void compare(ifstream &inFile2, int threshold) {
         }
 
         // 对不标准qname进行转换
+        string line_s;
         if (isNeedTrim) {
             qName = trimQname(qName);
-            line2 = trimLine(qName, line2);
+            line_s = trimLine(qName, line);
         }
 
         // 通过flag判断正负链会有异常情况，比如两条记录都是16或者两条记录都是0
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
-            qName = "-" + qName;
+            qName = qName.append("-");
         }
 
         auto it = hashMap.find(qName);
-        tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
+        tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line_s);
 
         // 在此处可以根据flag，增加比对规则
         if (isOpenEnancherRulers) {
@@ -280,7 +307,7 @@ void compare(ifstream &inFile2, int threshold) {
         if (it == hashMap.end()) {
             // 单独保存Hash未命中记录
             if (isSaveHashDisMatchFile) {
-                hashFile << line2 << endl;
+                hashFile << line_s << endl;
             }
             continue;
         }
@@ -365,12 +392,10 @@ int main(int argc, char *argv[]) {
     buildMap(samFileName1);
 
     // 根据sam文件1建立hashMap
-    string line1;
     allLines = hashMap.size();
 
     // 读取sam文件2开始比对
-    ifstream inFile2(samFileName2);
-    compare(inFile2, threshold);
+    compare(samFileName2, threshold);
 
     // 比对结果统计
     diffLines = hashMap.size();
