@@ -9,6 +9,17 @@
 #include <unordered_map>
 #include <cstdio>
 #include <cmath>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <iostream>
+#include <cstdio>
+#include <memory.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/mman.h>
 
 using namespace std;
 using namespace chrono;
@@ -33,11 +44,43 @@ unordered_multimap<string, tuple<string, int, string>> hashMap;
 bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 bool isSaveHashDisMatchFile = false; // 是否保存hash未命中的记录
 bool isOpenEnancherRulers = false; // 是否开启增强规则
+
 // 字段空格拆分
-vector<string> split(string &str) {
+vector<string> split(const string &str) {
     istringstream iss(str);
     return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
 }
+
+// 空格拆分
+vector<string> split_s(const string &s) {
+    vector<string> res;
+    for (int j = 0, i = 0; i < s.size();) {
+        while (i < s.size() && s[i] == ' ') {
+            i++;
+        }
+
+        j = i;
+        while (i < s.size() && s[i] != ' ') {
+            i++;
+        }
+
+        res.emplace_back(s.substr(j, i - j));
+    }
+    return res;
+}
+
+vector<string> split_t(const string &s, const string &delimiters = "\t") {
+    vector<string> tokens;
+    string::size_type lastPos = s.find_first_not_of(delimiters, 0);
+    string::size_type pos = s.find_first_of(delimiters, lastPos);
+    while (string::npos != pos || string::npos != lastPos) {
+        tokens.push_back(s.substr(lastPos, pos - lastPos)); // use emplace_back after C++11
+        lastPos = s.find_first_not_of(delimiters, pos);
+        pos = s.find_first_of(delimiters, lastPos);
+    }
+    return tokens;
+}
+
 
 // Qname是有后缀
 bool isQnameHasSuffix(const string &qName) {
@@ -53,11 +96,11 @@ string trimQname(string s) {
     return s.substr(0, s.size() - 2);
 }
 
-// 程序时间统计
-string trimLine(string qName, string line) {
+string trimLine(string qName, const string &line) {
     return qName.append(line.substr(qName.size() + 2));
 }
 
+// 程序时间统计
 time_point<system_clock> getStartTime() {
     time_point<system_clock> start = system_clock::now();
     return start;
@@ -112,13 +155,38 @@ bool isSame(int v1, int v2, int threshold) {
 }
 
 // thread-buildMap
-void buildMap(ifstream &inFile1) {
+void buildMap(const string &filePath) {
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
-    string line1;
 
-    while (getline(inFile1, line1)) {
-        auto field = split(line1);
+    // 第一步：建立映射
+    int fd;
+    void *start;
+    struct stat sb{};
+    fd = open(filePath.c_str(), O_RDONLY);
+    fstat(fd, &sb);  /* 取得文件大小 */
+    start = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (start == MAP_FAILED) {      /* 判断是否映射成功 */
+        cout << "mmap failed!!" << endl;
+        return;
+    }
+
+    // 第二步：拷贝内存
+    char *buffer = new char[sb.st_size];
+    memcpy(buffer, start, sb.st_size);
+
+    // 第三步: 解除映射
+    munmap(start, sb.st_size);
+    close(fd);
+
+    // 按行分割
+
+    char *str = buffer;
+    char *line1;
+    char *rest = str;
+
+    while ((line1 = strtok_r(rest, "\n", &rest))) {
+        auto field = split_t(line1);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {
@@ -135,9 +203,14 @@ void buildMap(ifstream &inFile1) {
         }
 
         // 对不标准qname进行转换
+        string line_s;
         if (isNeedTrim) {
             qName = trimQname(qName);
-            line1 = trimLine(qName, line1);
+            line_s = trimLine(qName, string(line1));
+        }
+
+        if (field.size() < 2) {
+            continue;
         }
 
         bool isMinus = (stoi(field[1])) & 16;
@@ -145,7 +218,7 @@ void buildMap(ifstream &inFile1) {
             qName = qName.append("-");
         }
 
-        tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line1);
+        tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line_s);
         hashMap.insert({qName, value});
     }
 }
@@ -158,7 +231,7 @@ void compare(ifstream &inFile2, int threshold) {
     ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
 
     while (getline(inFile2, line2)) {
-        auto field = split(line2);
+        auto field = split_t(line2);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {
@@ -289,12 +362,10 @@ int main(int argc, char *argv[]) {
     // 开始计时
     auto start = getStartTime();
 
-    ifstream inFile1(samFileName1);
-    buildMap(inFile1);
+    buildMap(samFileName1);
 
     // 根据sam文件1建立hashMap
     string line1;
-
     allLines = hashMap.size();
 
     // 读取sam文件2开始比对
