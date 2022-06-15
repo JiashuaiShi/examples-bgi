@@ -160,7 +160,7 @@ bool isSame(int v1, int v2, int threshold) {
     return abs(v1 - v2) <= threshold;
 }
 
-// thread-buildMap
+// task-buildMap
 void buildMap(const string &filePath) {
     cout << "buildMap start..." << endl;
 
@@ -228,7 +228,7 @@ void buildMap(const string &filePath) {
     cout << "buildMap end..." << endl;
 }
 
-// thread-compare
+// task-compare
 void compare(const string &filePath, int threshold) {
     cout << "compare start..." << endl;
 
@@ -415,13 +415,13 @@ int main(int argc, char *argv[]) {
         cin >> isSaveResult;
     }
 
-    getResultFileName(samFileName1, samFileName2);
-
     cout << "开始比较sam文件：" << endl;
     cout << "  " << samFileName1 << endl;
     cout << "  " << samFileName2 << endl;
     cout << "误差阈值：" << threshold << endl;
     cout << "是否保存文件： " << isSaveResult << endl << endl;
+
+    getResultFileName(samFileName1, samFileName2);
 
     // 开始计时
     auto start = getStartTime();
