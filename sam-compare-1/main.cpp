@@ -181,6 +181,7 @@ void buildMap(const string &filePath) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
+    char* mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -223,7 +224,7 @@ void buildMap(const string &filePath) {
     }
 
     // 释放内存
-    delete [] buffer;
+    delete [] mem;
 
     cout << "buildMap end..." << endl;
 }
@@ -235,7 +236,12 @@ void compare(const string &filePath, int threshold) {
     string line2;
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
-    ofstream hashFile("./diffMisHashHit.txt");     // hash没有命中的文件保存
+    ofstream hashFile;
+
+    // hash没有命中的文件保存
+    if (isSaveHashDisMatchFile) {
+        hashFile = ofstream("./diffMisHashHit.txt");
+    }
 
     // 第一步：建立映射
     int fd;
@@ -251,6 +257,7 @@ void compare(const string &filePath, int threshold) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
+    char* mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -324,11 +331,13 @@ void compare(const string &filePath, int threshold) {
             hashMap.insert({qName, value});
         }
 
-        hashFile.close();
+        // hash没有命中的文件保存
+        if (isSaveHashDisMatchFile) {
+            hashFile.close();
+        }
     }
 
-    delete [] buffer;
-
+    delete [] mem;
     cout << "compare end..." << endl;
 }
 
