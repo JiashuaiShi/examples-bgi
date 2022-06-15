@@ -24,34 +24,40 @@
 using namespace std;
 using namespace chrono;
 
-// 比较两个sam文件版本
-
 // 基本类型定义
 typedef char int8;
 typedef unsigned char uint8;
-
 typedef int int32;
 typedef unsigned int uint32;
-
+typedef long long int64;
+typedef unsigned long long uint64;
 typedef long long int64;
 typedef unsigned long long uint64;
 
-typedef long long int64;
-typedef unsigned long long uint64;
-
-// 统计字段定义
 unordered_multimap<string, tuple<string, int, string>> hashMap;
+
+// 配置开关定义
 bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
 bool isSaveHashDisMatchFile = false; // 是否保存hash未命中的记录
-bool isOpenEnancherRulers = false; // 是否开启增强规则
+bool isOpenEnhanceRulers = false; // 是否开启增强规则
+bool isSaveResult = true; // 是否保存结果文件
 
-// 字段空格拆分
+// 统计字段定义
+uint64 allLines = 0; // 全部行数
+uint64 diffLines = 0; // 差异行数
+uint64 sameLines = 0; // 相同行数
+
+// 比较文件
+string samFileName1;
+string samFileName2;
+
+// 按space/Tab拆分
 vector<string> split(const string &str) {
     istringstream iss(str);
     return vector<string>(istream_iterator<string>{iss}, istream_iterator<string>());
 }
 
-// 空格拆分
+// 按space拆分
 vector<string> split_s(const string &s) {
     vector<string> res;
     for (int j = 0, i = 0; i < s.size();) {
@@ -69,6 +75,7 @@ vector<string> split_s(const string &s) {
     return res;
 }
 
+// 按Tab拆分
 vector<string> split_t(const string &s, const string &delimiters = "\t") {
     vector<string> tokens;
     string::size_type lastPos = s.find_first_not_of(delimiters, 0);
@@ -80,7 +87,6 @@ vector<string> split_t(const string &s, const string &delimiters = "\t") {
     }
     return tokens;
 }
-
 
 // Qname是有后缀
 bool isQnameHasSuffix(const string &qName) {
@@ -156,6 +162,8 @@ bool isSame(int v1, int v2, int threshold) {
 
 // thread-buildMap
 void buildMap(const string &filePath) {
+    cout << "buildMap start..." << endl;
+
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
 
@@ -169,7 +177,6 @@ void buildMap(const string &filePath) {
     if (start == MAP_FAILED) {      /* 判断是否映射成功 */
         cout << "mmap failed!!" << endl;
         exit(-1);
-        return;
     }
 
     // 第二步：拷贝内存
@@ -209,10 +216,6 @@ void buildMap(const string &filePath) {
             line_s = trimLine(qName, string(line));
         }
 
-        if (field.size() < 2) {
-            continue;
-        }
-
         bool isMinus = (stoi(field[1])) & 16;
         if (isMinus) {
             qName = qName.append("-");
@@ -221,10 +224,17 @@ void buildMap(const string &filePath) {
         tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line_s);
         hashMap.insert({qName, value});
     }
+
+    // 释放内存
+    delete [] buffer;
+
+    cout << "buildMap end..." << endl;
 }
 
 // thread-compare
 void compare(const string &filePath, int threshold) {
+    cout << "compare start..." << endl;
+
     string line2;
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
@@ -240,7 +250,6 @@ void compare(const string &filePath, int threshold) {
     if (start == MAP_FAILED) {      /* 判断是否映射成功 */
         cout << "mmap failed!!" << endl;
         exit(-1);
-        return;
     }
 
     // 第二步：拷贝内存
@@ -290,7 +299,7 @@ void compare(const string &filePath, int threshold) {
         tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line_s);
 
         // 在此处可以根据flag，增加比对规则
-        if (isOpenEnancherRulers) {
+        if (isOpenEnhanceRulers) {
             int flag = stoi(field[1]);
 
             bool unMatch1 = flag & 0x40;  // read1匹配上
@@ -324,18 +333,52 @@ void compare(const string &filePath, int threshold) {
         hashFile.close();
     }
 
+    delete [] buffer;
+
+    cout << "compare end..." << endl;
+}
+
+void saveResult() {
+    cout << "saveResult start..." << endl;
+
+    // 比对结果统计
+    diffLines = hashMap.size();
+    sameLines = allLines - diffLines;
+
+    char samePercent[10];
+    sprintf(samePercent, "%.2f", sameLines * 100.0 / allLines);
+
+    char diffPercent[10];
+    sprintf(diffPercent, "%.2f", diffLines * 100.0 / allLines);
+
+    string sum = string("\n") + "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
+    sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
+    sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
+
+    cout << sum;
+
+    // 统计结果写入文件
+    if (isSaveResult) {
+        string resFileName = "./" + getResultFileName(samFileName1, samFileName2);
+        FILE *fp = fopen(resFileName.c_str(), "w");
+        fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
+        auto it = hashMap.begin();
+        while (it != hashMap.end()) {
+            auto chr = it->first; // QName
+            auto line = get<2>(it->second) + '\n'; // 存在差异的行
+            fwrite(line.c_str(), sizeof(char), line.size(), fp);
+            it++;
+        }
+        fclose(fp);
+        cout << "处理结束，结果在: " << resFileName << endl;
+    }
+
+    cout << "saveResult end..." << endl;
 }
 
 int main(int argc, char *argv[]) {
     // 读取sam文件
-    string samFileName1;
-    string samFileName2;
     int threshold = 0;  // 位置比较阈值
-    bool isSaveResult = true; // 是否保存结果文件
-
-    uint64 allLines = 0; // 全部行数
-    uint64 diffLines = 0; // 差异行数
-    uint64 sameLines = 0; // 相同行数
 
     // 命令行参数
     if (argc == 2) {
@@ -384,53 +427,23 @@ int main(int argc, char *argv[]) {
     cout << "  " << samFileName1 << endl;
     cout << "  " << samFileName2 << endl;
     cout << "误差阈值：" << threshold << endl;
-    cout << "是否保存文件： " << isSaveResult << endl;
+    cout << "是否保存文件： " << isSaveResult << endl << endl;
 
     // 开始计时
     auto start = getStartTime();
 
-    buildMap(samFileName1);
-
     // 根据sam文件1建立hashMap
+    buildMap(samFileName1);
     allLines = hashMap.size();
 
     // 读取sam文件2开始比对
     compare(samFileName2, threshold);
 
-    // 比对结果统计
-    diffLines = hashMap.size();
-    sameLines = allLines - diffLines;
-
-    char samePercent[10];
-    sprintf(samePercent, "%.2f", sameLines * 100.0 / allLines);
-
-    char diffPercent[10];
-    sprintf(diffPercent, "%.2f", diffLines * 100.0 / allLines);
-
-    string sum = "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
-    sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
-    sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
-
-    // 统计结果写入文件
-    if (isSaveResult) {
-        string resFileName = "./" + getResultFileName(samFileName1, samFileName2);
-        FILE *fp = fopen(resFileName.c_str(), "w");
-        fwrite(sum.c_str(), sizeof(char), sum.size(), fp);
-        auto it = hashMap.begin();
-        while (it != hashMap.end()) {
-            auto chr = it->first; // QName
-            auto line = get<2>(it->second) + '\n'; // 存在差异的行
-            fwrite(line.c_str(), sizeof(char), line.size(), fp);
-            it++;
-        }
-        fclose(fp);
-        cout << "处理结束，结果在./" << resFileName << endl;
-    }
+    // 保存结果
+    saveResult();
 
     // 结束计时
     auto end = getEndTime();
-
-    cout << sum;
     cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
 
     return 0;
