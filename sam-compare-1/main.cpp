@@ -7,7 +7,7 @@
 #include <sstream>
 #include <chrono>
 #include <unordered_map>
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 using namespace std;
@@ -31,7 +31,8 @@ typedef unsigned long long uint64;
 // 统计字段定义
 unordered_multimap<string, tuple<string, int, string>> hashMap;
 bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名结果文件
-
+bool isSaveHashDisMatchFile = false; // 是否保存hash未命中的记录
+bool isOpenEnancherRulers = false; // 是否开启增强规则
 // 字段空格拆分
 vector<string> split(string &str) {
     istringstream iss(str);
@@ -39,7 +40,7 @@ vector<string> split(string &str) {
 }
 
 // Qname是有后缀
-bool isQnameHasSuffix(string qName) {
+bool isQnameHasSuffix(const string &qName) {
     int len = qName.size();
     if (len < 3)
         return false;
@@ -130,7 +131,7 @@ void buildMap(ifstream &inFile1) {
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
             isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
+            isTestFlag = false;
         }
 
         // 对不标准qname进行转换
@@ -170,7 +171,7 @@ void compare(ifstream &inFile2, int threshold) {
         // 测试Qname是否标准，只做1次
         if (isTestFlag) {
             isNeedTrim = isQnameHasSuffix(qName);
-            isTestFlag = !isTestFlag;
+            isTestFlag = false;
         }
 
         // 对不标准qname进行转换
@@ -189,7 +190,7 @@ void compare(ifstream &inFile2, int threshold) {
         tuple<string, uint64, string> value = make_tuple(field[2], stoi(field[3]), line2);
 
         // 在此处可以根据flag，增加比对规则
-        if (false) {
+        if (isOpenEnancherRulers) {
             int flag = stoi(field[1]);
 
             bool unMatch1 = flag & 0x40;  // read1匹配上
@@ -205,7 +206,9 @@ void compare(ifstream &inFile2, int threshold) {
         // key不命中，插入HashMap
         if (it == hashMap.end()) {
             // 单独保存Hash未命中记录
-//            hashFile << line2 << endl;
+            if (isSaveHashDisMatchFile) {
+                hashFile << line2 << endl;
+            }
             continue;
         }
 
