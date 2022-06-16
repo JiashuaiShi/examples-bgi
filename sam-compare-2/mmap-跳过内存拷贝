@@ -1,20 +1,51 @@
-$ time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
-开始比较sam文件：
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
-误差阈值：0
-是否保存文件： 0
+__________0
+______________ 0
 
 buildMap start...
+timeCost__ 296.616s
+
 buildMap end...
 compare start...
+timeCost__ 336.428s
 compare end...
 saveResult start...
-
-相同行数： 37501506  百分比：93.75%
-不同行数： 2498494  百分比：  6.25%
-总共行数： 40000000
-
+timeCost__ 2.0654e-05s
 saveResult end...
-程序比较共消耗时间： 917.769s
-./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  785.84s user 140.02s system 99% cpu 15:28.11 total
+
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
+
+____________________ 633.044s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  579.53s user 61.14s system 99% cpu 10:42.18 total
+
+=============================================================================================================================================
+=============================================================================================================================================
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
+__________0
+______________ 0
+
+buildMap start...
+timeCost__ 343.976s
+
+buildMap end...
+compare start...
+timeCost__ 369.554s
+compare end...
+saveResult start...
+timeCost__ 2.2874e-05s
+saveResult end...
+
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
+
+____________________ 713.53s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  611.25s user 110.42s system 99% cpu 12:03.40 total

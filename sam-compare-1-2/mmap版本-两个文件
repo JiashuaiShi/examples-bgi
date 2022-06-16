@@ -1,48 +1,53 @@
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-[shijiashuai@lush-dev10 sam-compare-1]$ time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
-开始比较sam文件：
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
-误差阈值：0
-是否保存文件： 0
+__________0
+______________ 0
 
 buildMap start...
+timeCost__ 299.096s
+
 buildMap end...
 compare start...
+timeCost__ 301.49s
 compare end...
+
 saveResult start...
-
-相同行数： 37501506  百分比：93.75%
-不同行数： 2498494  百分比：  6.25%
-总共行数： 40000000
-
+timeCost__ 2.7313e-05s
 saveResult end...
-程序比较共消耗时间： 649.692s
 
-real    10m52.109s
-user    9m17.704s
-sys     1m26.854s
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-$ time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
-开始比较sam文件：
+____________________ 600.586s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  527.95s user 75.62s system 99% cpu 10:05.09 total
+
+=============================================================================================================================================
+=============================================================================================================================================
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
-误差阈值：0
-是否保存文件： 0
+__________0
+______________ 0
 
 buildMap start...
+timeCost__ 310.616s
+
 buildMap end...
 compare start...
+timeCost__ 302.191s
 compare end...
+
 saveResult start...
-
-相同行数： 37501506  百分比：93.75%
-不同行数： 2498494  百分比：  6.25%
-总共行数： 40000000
-
+timeCost__ 2.5069e-05s
 saveResult end...
-程序比较共消耗时间： 689.95s
-./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  598.45s user 93.23s system 99% cpu 11:33.33 total
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
+
+____________________ 612.807s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  547.92s user 67.62s system 99% cpu 10:16.99 total

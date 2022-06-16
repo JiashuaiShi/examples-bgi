@@ -1,0 +1,53 @@
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
+__________0
+______________ 0
+
+buildMap start...
+timeCost__ 290.457s
+
+buildMap end...
+compare start...
+timeCost__ 268.85s
+compare end...
+
+saveResult start...
+timeCost__ 2.666e-05s
+saveResult end...
+
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
+
+____________________ 559.309s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  507.33s user 53.04s system 99% cpu 9:21.74 total
+
+=============================================================================================================================================
+=============================================================================================================================================
+49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+________sam______
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
+__________0
+______________ 0
+
+buildMap start...
+timeCost__ 289.024s
+
+buildMap end...
+compare start...
+timeCost__ 271.608s
+compare end...
+
+saveResult start...
+timeCost__ 2.4447e-05s
+saveResult end...
+
+__________ 37501506  ________93.75%
+__________ 2498494  ________  6.25%
+__________ 40000000
+
+____________________ 560.633s
+./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  509.56s user 51.85s system 99% cpu 9:22.73 total
