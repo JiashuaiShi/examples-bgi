@@ -239,9 +239,6 @@ void buildMap(const string &filePath) {
         hashMap.insert({qName, value});
     }
 
-    // 第二步：拷贝内存
-//    memcpy(buffer, start, sb.st_size);
-
     // 第三步: 解除映射
     munmap(start, sb.st_size);
     close(fd);
@@ -339,9 +336,6 @@ void compare(const string &filePath, int threshold) {
 
         hashFile.close();
     }
-
-    // 第二步：拷贝内存
-//    char *buffer = new char[sb.st_size];
 
     // 第三步: 解除映射
     munmap(start, sb.st_size);
