@@ -188,8 +188,7 @@ void buildMap(const string &filePath) {
     close(fd);
 
     // 按行分割
-    char *line;
-    while ((line = strtok_r(buffer, "\n", &buffer))) {
+    while (char *line = strtok_r(buffer, "\n", &buffer)) {
         auto field = split_t(line);
 
         // 头部其他字段，跳过
@@ -258,8 +257,7 @@ void compare(const string &filePath, int threshold) {
     close(fd);
 
     // 按行分割
-    char *line;
-    while ((line = strtok_r(buffer, "\n", &buffer))) {
+    while ((char * line = strtok_r(buffer, "\n", &buffer))) {
         auto field = split_t(line);
 
         // 头部其他字段，跳过
