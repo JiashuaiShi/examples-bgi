@@ -228,8 +228,8 @@ void buildMap(const string &filePath) {
 
     auto timeEnd = getTimeStamp();
 
-    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl << endl;
-    cout << "buildMap end..." << endl;
+    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;
+    cout << "buildMap end..." << endl << endl;
 }
 
 // task-compare

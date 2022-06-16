@@ -222,8 +222,8 @@ void buildMap(const string &filePath) {
 
     auto timeEnd = getTimeStamp();
 
-    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl << endl;
-    cout << "buildMap end..." << endl;
+    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;
+    cout << "buildMap end..." << endl << endl;
 }
 
 // task-compare
@@ -262,7 +262,7 @@ void compare(const string &filePath, int threshold) {
     close(fd);
 
     // 按行分割
-    char* line;
+    char *line;
     while ((line = strtok_r(buffer, "\n", &buffer))) {
         auto field = split_t(line);
 
