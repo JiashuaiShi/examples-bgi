@@ -132,14 +132,8 @@ string trimLine(string qName, const string &line) {
 }
 
 // 程序时间统计
-time_point<system_clock> getStartTime() {
-    time_point<system_clock> start = system_clock::now();
-    return start;
-}
-
-time_point<system_clock> getEndTime() {
-    time_point<system_clock> end = system_clock::now();
-    return end;
+time_point<system_clock> getTimeStamp() {
+    return system_clock::now();
 }
 
 std::chrono::duration<double> getElapsed(time_point<system_clock> start, time_point<system_clock> end) {
@@ -188,6 +182,7 @@ bool isSame(int v1, int v2, int threshold) {
 // task-buildMap
 void buildMap(const string &filePath) {
     cout << "buildMap start..." << endl;
+    auto timeStart = getTimeStamp();
 
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
@@ -243,12 +238,16 @@ void buildMap(const string &filePath) {
     munmap(start, sb.st_size);
     close(fd);
 
+    auto timeEnd = getTimeStamp();
+
+    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl << endl;
     cout << "buildMap end..." << endl;
 }
 
 // task-compare
 void compare(const string &filePath, int threshold) {
     cout << "compare start..." << endl;
+    auto timeStart = getTimeStamp();
 
     string line2;
     bool isTestFlag = true;
@@ -334,18 +333,25 @@ void compare(const string &filePath, int threshold) {
             hashMap.insert({qName, value});
         }
 
-        hashFile.close();
+        // hash没有命中的文件保存
+        if (isSaveHashDisMatchFile) {
+            hashFile.close();
+        }
     }
 
     // 第三步: 解除映射
     munmap(start, sb.st_size);
     close(fd);
 
+    auto timeEnd = getTimeStamp();
+
+    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;
     cout << "compare end..." << endl;
 }
 
 void saveResult() {
     cout << "saveResult start..." << endl;
+    auto timeStart = getTimeStamp();
 
     // 比对结果统计
     diffLines = hashMap.size();
@@ -357,11 +363,9 @@ void saveResult() {
     char diffPercent[10];
     sprintf(diffPercent, "%.2f", diffLines * 100.0 / allLines);
 
-    string sum = string("\n") + "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
+    string sum = "相同行数： " + to_string(sameLines) + "  " + "百分比：" + samePercent + "%" + '\n';
     sum += "不同行数： " + to_string(diffLines) + "  " + "百分比：  " + diffPercent + "%" + '\n';
     sum += "总共行数： " + to_string(allLines) + '\n' + '\n';
-
-    cout << sum;
 
     // 统计结果写入文件
     if (isSaveResult) {
@@ -379,7 +383,12 @@ void saveResult() {
         cout << "处理结束，结果在: " << resFileName << endl;
     }
 
-    cout << "saveResult end..." << endl;
+    auto timeEnd = getTimeStamp();
+
+    cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;
+    cout << "saveResult end..." << endl << endl;
+
+    cout << sum;
 }
 
 int main(int argc, char *argv[]) {
@@ -436,7 +445,7 @@ int main(int argc, char *argv[]) {
     getResultFileName(samFileName1, samFileName2);
 
     // 开始计时
-    auto start = getStartTime();
+    auto start = getTimeStamp();
 
     // 根据sam文件1建立hashMap
     buildMap(samFileName1);
@@ -449,7 +458,7 @@ int main(int argc, char *argv[]) {
     saveResult();
 
     // 结束计时
-    auto end = getEndTime();
+    auto end = getTimeStamp();
     cout << "程序比较共消耗时间： " << getElapsed(start, end).count() << "s" << endl;
 
     return 0;
