@@ -8,18 +8,12 @@
 #include <chrono>
 #include <unordered_map>
 #include <cstdio>
-#include <cmath>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <iostream>
-#include <cstdio>
 #include <memory.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <cstdlib>
-#include <unistd.h>
-#include <sys/mman.h>
 
 using namespace std;
 using namespace chrono;
@@ -90,7 +84,7 @@ vector<string> split_t(const string &s, const string &delimiters = "\t") {
 
 // Qname是有后缀
 bool isQnameHasSuffix(const string &qName) {
-    int len = qName.size();
+    auto len = qName.size();
     if (len < 3)
         return false;
 
@@ -222,8 +216,8 @@ void buildMap(const string &filePath) {
 
     auto timeEnd = getTimeStamp();
 
-    cout << "buildMap end..." << endl;
     cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl << endl;
+    cout << "buildMap end..." << endl;
 }
 
 // task-compare
