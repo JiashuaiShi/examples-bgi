@@ -181,7 +181,7 @@ void buildMap(const string &filePath) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
-    char* mem = buffer;
+    char *mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -223,7 +223,7 @@ void buildMap(const string &filePath) {
     }
 
     // 释放内存
-    delete [] mem;
+    delete[] mem;
 
     cout << "buildMap end..." << endl;
 }
@@ -256,7 +256,7 @@ void compare(const string &filePath, int threshold) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
-    char* mem = buffer;
+    char *mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -335,7 +335,7 @@ void compare(const string &filePath, int threshold) {
         }
     }
 
-    delete [] mem;
+    delete[] mem;
     cout << "compare end..." << endl;
 }
 

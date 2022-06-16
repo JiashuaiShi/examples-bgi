@@ -1,0 +1,15 @@
+[shijiashuai@10-227-4-232 sam-compare]$ time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+开始比较sam文件：
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
+  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
+误差阈值：0
+是否保存文件： 0
+相同行数： 37501506  百分比：93.75%
+不同行数： 2498494  百分比：  6.25%
+总共行数： 40000000
+
+程序比较共消耗时间： 740.248s
+
+real    12m28.606s
+user    11m3.389s
+sys     1m23.413s
