@@ -88,6 +88,31 @@ vector<string> split_t(const string &s, const string &delimiters = "\t") {
     return tokens;
 }
 
+const char *strtok_p(const char *p, const char delim, const char **pos) {
+    // 分割结束
+    if (*p == '\0') {
+        return nullptr;
+    }
+
+    const char *cur = p;
+    while (*cur != '\0' && *cur != delim) {
+        cur++;
+    }
+
+    // 指向下一个字符串开头
+    if (*cur != '\0') {
+        cur++;
+    }
+
+    *pos = cur;
+    long len = cur - p;
+    char *res = new char[len];
+    memcpy(res, p, len);
+    res[len - 1] = '\0';
+
+    return res;
+}
+
 // Qname是有后缀
 bool isQnameHasSuffix(const string &qName) {
     int len = qName.size();
@@ -179,16 +204,9 @@ void buildMap(const string &filePath) {
         exit(-1);
     }
 
-    // 第二步：拷贝内存
-    memcpy(buffer, start, sb.st_size);
-
-    // 第三步: 解除映射
-    munmap(start, sb.st_size);
-    close(fd);
-
     // 按行分割
-    char *line;
-    while ((line = strtok_r(buffer, "\n", &buffer))) {
+    const char **pos = (const char **) &start;
+    while (const char *line = strtok_p((const char *) start, '\n', pos)) {
         auto field = split_t(line);
 
         // 头部其他字段，跳过
@@ -221,6 +239,13 @@ void buildMap(const string &filePath) {
         hashMap.insert({qName, value});
     }
 
+    // 第二步：拷贝内存
+//    memcpy(buffer, start, sb.st_size);
+
+    // 第三步: 解除映射
+    munmap(start, sb.st_size);
+    close(fd);
+
     cout << "buildMap end..." << endl;
 }
 
@@ -245,16 +270,9 @@ void compare(const string &filePath, int threshold) {
         exit(-1);
     }
 
-    // 第二步：拷贝内存
-    char *buffer = new char[sb.st_size];
-
-    // 第三步: 解除映射
-    munmap(start, sb.st_size);
-    close(fd);
-
     // 按行分割
-    char *line;
-    while ((line = strtok_r(buffer, "\n", &buffer))) {
+    const char **pos = (const char **) &start;
+    while (const char *line = strtok_p((const char *) start, '\n', pos)) {
         auto field = split_t(line);
 
         // 头部其他字段，跳过
@@ -321,6 +339,13 @@ void compare(const string &filePath, int threshold) {
 
         hashFile.close();
     }
+
+    // 第二步：拷贝内存
+//    char *buffer = new char[sb.st_size];
+
+    // 第三步: 解除映射
+    munmap(start, sb.st_size);
+    close(fd);
 
     cout << "compare end..." << endl;
 }
