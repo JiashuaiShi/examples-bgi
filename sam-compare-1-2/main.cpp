@@ -176,7 +176,6 @@ void buildMap(const string &filePath) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
-    char *mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -218,7 +217,7 @@ void buildMap(const string &filePath) {
     }
 
     // 释放内存
-    delete[] mem;
+    delete[] buffer;
 
     auto timeEnd = getTimeStamp();
 
@@ -254,7 +253,6 @@ void compare(const string &filePath, int threshold) {
 
     // 第二步：拷贝内存
     char *buffer = new char[sb.st_size];
-    char *mem = buffer;
     memcpy(buffer, start, sb.st_size);
 
     // 第三步: 解除映射
@@ -334,6 +332,7 @@ void compare(const string &filePath, int threshold) {
         }
     }
 
+    delete[] buffer;
     auto timeEnd = getTimeStamp();
 
     cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;

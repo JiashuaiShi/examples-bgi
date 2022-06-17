@@ -8,11 +8,6 @@
 #include <chrono>
 #include <unordered_map>
 #include <cstdio>
-#include <sys/stat.h>
-#include <memory.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <cstdlib>
 
 using namespace std;
@@ -75,7 +70,21 @@ vector<string> split_t(const string &s, const string &delimiters = "\t") {
     string::size_type lastPos = s.find_first_not_of(delimiters, 0);
     string::size_type pos = s.find_first_of(delimiters, lastPos);
     while (string::npos != pos || string::npos != lastPos) {
-        tokens.push_back(s.substr(lastPos, pos - lastPos)); // use emplace_back after C++11
+        tokens.emplace_back(move(s.substr(lastPos, pos - lastPos))); // use emplace_back after C++11
+        lastPos = s.find_first_not_of(delimiters, pos);
+        pos = s.find_first_of(delimiters, lastPos);
+    }
+    return tokens;
+}
+
+vector<string> split_t_cnt(const string &s, const string &delimiters = "\t", const int cnt = 4) {
+    vector<string> tokens;
+    string::size_type lastPos = s.find_first_not_of(delimiters, 0);
+    string::size_type pos = s.find_first_of(delimiters, lastPos);
+    int n = cnt;
+    while ((string::npos != pos || string::npos != lastPos)
+           && n--) {
+        tokens.emplace_back(move(s.substr(lastPos, pos - lastPos))); // use emplace_back after C++11
         lastPos = s.find_first_not_of(delimiters, pos);
         pos = s.find_first_of(delimiters, lastPos);
     }
@@ -156,29 +165,12 @@ void buildMap(const string &filePath) {
     bool isTestFlag = true;
     bool isNeedTrim = false; // 是否需要去除qname的后缀 （以 '/1'或者'/2'结尾）
 
-    // 第一步：建立映射
-    int fd;
-    void *start;
-    struct stat sb{};
-    fd = open(filePath.c_str(), O_RDONLY);
-    fstat(fd, &sb);  /* 取得文件大小 */
-    start = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    if (start == MAP_FAILED) {      /* 判断是否映射成功 */
-        cout << "mmap failed!!" << endl;
-        exit(-1);
-    }
-
-    // 第二步：拷贝内存
-    char *buffer = new char[sb.st_size];
-    memcpy(buffer, start, sb.st_size);
-
-    // 第三步: 解除映射
-    munmap(start, sb.st_size);
-    close(fd);
+    ifstream inFile(filePath);
+    string line;
 
     // 按行分割
-    while (char *line = strtok_r(buffer, "\n", &buffer)) {
-        auto field = split_t(line);
+    while (getline(inFile, line)) {
+        auto field = split_t_cnt(line);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {
@@ -210,9 +202,6 @@ void buildMap(const string &filePath) {
         hashMap.insert({qName, value});
     }
 
-    // 释放内存
-    delete[] buffer;
-
     auto timeEnd = getTimeStamp();
 
     cout << "timeCost： " << getElapsed(timeStart, timeEnd).count() << "s" << endl;
@@ -238,7 +227,7 @@ void compare(const string &filePath, int threshold) {
     string line;
 
     while (getline(inFile, line)) {
-        auto field = split_t(line);
+        auto field = split_t_cnt(line);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {

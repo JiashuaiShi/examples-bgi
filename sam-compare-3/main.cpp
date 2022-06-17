@@ -15,7 +15,7 @@
 #include <sys/mman.h>
 #include <cstdlib>
 #include <thread>
-#include "s_queue.hpp"
+#include "safeQueue.hpp"
 
 using namespace std;
 using namespace chrono;
