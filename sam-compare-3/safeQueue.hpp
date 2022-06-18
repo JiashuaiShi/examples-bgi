@@ -9,7 +9,7 @@ class MyQueue {
 private:
     mutable shared_mutex mut;
     condition_variable cond;
-    queue<string> q;
+    queue<vector<string>> q;
 
 public:
     MyQueue() = default;
@@ -18,15 +18,15 @@ public:
 
     MyQueue &operator=(const MyQueue &) = delete;
 
-    void push(string &e) {
+    void push(const vector<string>& e) {
         std::lock_guard<std::shared_mutex> lk(mut);
         q.push(e);
         cond.notify_one();
     }
 
-    string pop() {
+    vector<string> pop() {
         lock_guard<shared_mutex> lk(mut);
-        string e = move(q.front());
+        vector<string> e = move(q.front());
         q.pop();
         return e;
     }

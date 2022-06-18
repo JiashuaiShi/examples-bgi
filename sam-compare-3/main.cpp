@@ -37,6 +37,7 @@ bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名�
 bool isSaveHashDisMatchFile = false; // 是否保存hash未命中的记录
 bool isOpenEnhanceRulers = false; // 是否开启增强规则
 bool isSaveResult = true; // 是否保存结果文件
+const int MCnt = 10000;
 
 // 统计字段定义
 uint64 allLines = 0; // 全部行数
@@ -69,6 +70,21 @@ vector<string> split_s(const string &s) {
         res.emplace_back(s.substr(j, i - j));
     }
     return res;
+}
+
+// 只拆分前4列
+vector<string> split_t_cnt(const string &s, const string &delimiters = "\t", const int cnt = 4) {
+    vector<string> tokens;
+    string::size_type lastPos = s.find_first_not_of(delimiters, 0);
+    string::size_type pos = s.find_first_of(delimiters, lastPos);
+    int n = cnt;
+    while ((string::npos != pos || string::npos != lastPos)
+           && n--) {
+        tokens.emplace_back(move(s.substr(lastPos, pos - lastPos))); // use emplace_back after C++11
+        lastPos = s.find_first_not_of(delimiters, pos);
+        pos = s.find_first_of(delimiters, lastPos);
+    }
+    return tokens;
 }
 
 // 按Tab拆分
@@ -166,12 +182,22 @@ void buildMap(const string &filePath) {
 
         // 获取对象
         string line;
+        vector<string> lines;
+        int u = MCnt;
         while (getline(inFile, line)) {
-            mq.push((line));
+            lines.emplace_back(move(line));
+            if (--u == 0) {
+                mq.push((lines));
+                lines = vector<string>();
+                u = MCnt;
+            }
         }
+        // 最后一批数据
+        mq.push(lines);
 
-        string s;
-        mq.push(s);
+        // 表示结束的标记
+        mq.push(vector<string>());
+
         cout << "TaskReadLine end" << endl;
     };
 
@@ -180,41 +206,43 @@ void buildMap(const string &filePath) {
 
         while (true) {
             if (mq.size()) {
-                string line2 = mq.pop();
+                vector<string> lines = mq.pop();
 
-                if (line2.empty()) {
+                // 消费者线程跳出的标记
+                if (lines.empty()) {
                     break;
                 }
 
-                auto field = split(line2);
+                for (const auto& line: lines) {
+                    auto field = split_t_cnt(line);
 
-                // 头部其他字段，跳过
-                if (field[0][0] == '@') {
-                    continue;
+                    // 头部其他字段，跳过
+                    if (field[0][0] == '@') {
+                        continue;
+                    }
+
+                    // 正负链取key值
+                    auto qName = field[0];
+
+                    // 测试Qname是否标准，只做1次
+                    if (isTestFlag) {
+                        isNeedTrim = isQnameHasSuffix(qName);
+                        isTestFlag = false;
+                    }
+
+                    // 对不标准qname进行转换
+                    if (isNeedTrim) {
+                        qName = trimQname(qName);
+                    }
+
+                    bool isMinus = (stoi(field[1])) & 16;
+                    if (isMinus) {
+                        qName = qName.append("-");
+                    }
+
+                    tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line);
+                    hashMap.insert({qName, value});
                 }
-
-                // 正负链取key值
-                auto qName = field[0];
-
-                // 测试Qname是否标准，只做1次
-                if (isTestFlag) {
-                    isNeedTrim = isQnameHasSuffix(qName);
-                    isTestFlag = false;
-                }
-
-                // 对不标准qname进行转换
-                if (isNeedTrim) {
-                    qName = trimQname(qName);
-                    line2 = trimLine(qName, line2);
-                }
-
-                bool isMinus = (stoi(field[1])) & 16;
-                if (isMinus) {
-                    qName = qName.append("-");
-                }
-
-                tuple<string, int, string> value = make_tuple(field[2], stoi(field[3]), line2);
-                hashMap.insert({qName, value});
             }
         }
         cout << "TaskBuildMap end" << endl;
@@ -251,7 +279,7 @@ void compare(const string &filePath, int threshold) {
     string line;
 
     while (getline(inFile, line)) {
-        auto field = split_t(line);
+        auto field = split_t_cnt(line);
 
         // 头部其他字段，跳过
         if (field[0][0] == '@') {

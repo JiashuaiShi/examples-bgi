@@ -79,6 +79,7 @@ vector<string> split_t(const string &s, const string &delimiters = "\t") {
     return tokens;
 }
 
+// 只拆分前4列
 vector<string> split_t_cnt(const string &s, const string &delimiters = "\t", const int cnt = 4) {
     vector<string> tokens;
     string::size_type lastPos = s.find_first_not_of(delimiters, 0);
