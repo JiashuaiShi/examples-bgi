@@ -141,12 +141,18 @@ constexpr const char *file_name(const char *str) {
 
 bool checkPostFix(const string &s) {
     int i = 0;
-    while (i < s.size() && s[i] != '\t') {
-        if (s[i] == '/') {
-            return true;
+    while (i < s.size()) {
+        if (s[i] == '\t') {
+            break;
         }
         i++;
     }
+
+    if (s[i - 2] == '/' &&
+        (s[i - 1] == '1' || s[i - 1] == '2')) {
+        return true;
+    }
+
     return false;
 }
 
@@ -182,6 +188,9 @@ vector<string> readFile(const string &filePath) {
         // 快速跳过头部行
         if (headFlag) {
             headFlag = (line[0] == '@');
+            if (!headFlag) {
+                res.emplace_back(move(line));
+            }
             continue;
         }
 
@@ -199,7 +208,7 @@ void compareHash(vector<string> data, int threshold) {
     bool isPostFix = checkPostFix(data[0]);
 
     int i = 0;
-//#pragma omp parallel for  num_threads(120)  private(i) shared(data, isPostFix, hashMap,threshold) default(none)
+//#pragma omp parallel for  num_threads(1)  private(i) shared(data, isPostFix, hashMap,threshold) default(none)
     for (i = 0; i < data.size(); i++) {
         auto field = split_t_cnt(data[i]);
 
@@ -292,7 +301,7 @@ void buildHashMap(vector<string> &data) {
 
     // 按行处理，插入hashMap
     int i = 0;
-#pragma omp parallel for  num_threads(120)  private(i) shared(data, isPostFix, hashMap) default(none)
+//#pragma omp parallel for  num_threads(1)  private(i) shared(data, isPostFix, hashMap) default(none)
     for (i = 0; i < data.size(); i++) {
         // 取每行数据分割
         auto field = split_t_cnt(data[i]);
