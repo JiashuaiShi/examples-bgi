@@ -37,7 +37,7 @@ bool isAutoRenameDiffName = false;  // 自动根据比对的两个文件命名�
 bool isSaveHashDisMatchFile = false; // 是否保存hash未命中的记录
 bool isOpenEnhanceRulers = false; // 是否开启增强规则
 bool isSaveResult = true; // 是否保存结果文件
-const int MCnt = 10000;
+const int MCnt = 1000000;
 
 // 统计字段定义
 uint64 allLines = 0; // 全部行数

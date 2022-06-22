@@ -5,4 +5,4 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "-O3 -DNDEBUG " )   # release包优化
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
-add_executable(samCompare main.cpp safeQueue.hpp)
+add_executable(samCompare6 main.cpp safeQueue.hpp)

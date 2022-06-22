@@ -1,61 +1,30 @@
-49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
-________sam______
+$ time ./samCompare3 /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangy
+oujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
+开始比较sam文件：
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
   /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
-__________0
-______________ 0
-
-buildMap start...
-TaskBuildMap startTaskReadLine start
-
-TaskReadLine end
-TaskBuildMap end
-timeCost__ 362.394s
-
-buildMap end...
-compare start...
-timeCost__ 312.387s
-compare end...
-
-saveResult start...
-timeCost__ 2.9039e-05s
-saveResult end...
-
-__________ 37501506  ________93.75%
-__________ 2498494  ________  6.25%
-__________ 40000000
-
-____________________ 677.618s
-./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  581.80s user 134.49s system 104% cpu 11:25.84 total
-
-=============================================================================================================================================
-=============================================================================================================================================
-49413905d7cd# time ./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam 0 0
-________sam______
-  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam
-  /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/bwa_0601.sam
-__________0
-______________ 0
+误差阈值：0
+是否保存文件： 0
 
 buildMap start...
 TaskReadLine start
 TaskBuildMap start
 TaskReadLine end
 TaskBuildMap end
-timeCost__ 360.836s
-
+timeCost： 91.7326s
 buildMap end...
+
 compare start...
-timeCost__ 281.258s
+timeCost： 101.556s
 compare end...
 
 saveResult start...
-timeCost__ 3.1257e-05s
+timeCost： 3.5249e-05s
 saveResult end...
 
-__________ 37501506  ________93.75%
-__________ 2498494  ________  6.25%
-__________ 40000000
+相同行数： 37501506  百分比：93.75%
+不同行数： 2498494  百分比：  6.25%
+总共行数： 40000000
 
-____________________ 644.821s
-./samCompare /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0 0  574.58s user 108.27s system 104% cpu 10:52.24 total
+程序比较共消耗时间： 193.289s
+./samCompare3 /data/lush-dev/zhangyoujin/tmp/xibei_tmpdir/t_lush_0601.sam  0   183.77s user 49.97s system 116% cpu 3:20.48 total
